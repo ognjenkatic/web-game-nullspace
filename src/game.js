@@ -69,7 +69,7 @@ function bcdraw_entity(x,y,size,color){
     var cH = cnv.height;
 
     if(x > 0 && x < cW && y > 0 && y < cH){
-        ctx.fillStyle = "green";
+        ctx.fillStyle = color;
         ctx.fillRect(x,y,size,size);
     }
 
@@ -77,6 +77,150 @@ function bcdraw_entity(x,y,size,color){
 
 
 // Story code
+class Condition{
+    constructor(name){
+        this.name = name;
+        this.completed = false;
+    }
+}
+
+class Scene{
+    constructor(conditions,conversation,inits){
+        this.conditions = conditions;
+        this.conversation = conversation;
+        this.isComplete = false;
+        this.inits = inits;
+    }
+
+    completeCondition(conditionName){
+        var allConditionsComplete = true;
+        for(var i =0;i<this.conditions.length;i++){
+            if(this.conditions[i].name == conditionName)
+            {
+                this.conditions[i].completed = true;
+            }
+
+            allConditionsComplete = allConditionsComplete && this.conditions[i].completed;
+        }
+
+        this.isComplete = allConditionsComplete;
+    }
+
+    init(){
+        
+        chat = this.conversation;
+        chatIndex = 0;
+
+        if(this.inits)
+            for(var i =0;i<this.inits.length;i++){
+                this.inits[i]();
+            }
+
+        progressChat();
+
+        
+    }
+}
+
+class Episode{
+    constructor(scenes){
+        this.scenes = scenes;
+        this.isComplete = false;
+        this.currSceneIndex = 0;
+        this.currScene = this.scenes[this.currSceneIndex];
+        
+    }
+
+    completeCondition(conditionName){
+        this.currScene.completeCondition(conditionName);
+        if(this.currScene.isComplete){
+            this.currSceneIndex++;
+            if(this.scenes.length > this.currSceneIndex && this.currSceneIndex > 0) {
+                this.currScene = this.scenes[this.currSceneIndex];
+                this.currScene.init();
+            }
+        }
+    }
+
+    getConditions(){
+        return this.currScene.conditions;
+    }
+
+    init(){
+        this.currScene.init();        
+    }
+}
+
+class Story{
+    constructor(episodes){
+        this.episodes = episodes;
+        this.name = "Nullspace";
+        this.currEpisodeIndex = 0;
+        this.currEpisode = this.episodes[this.currEpisodeIndex];
+    }
+
+    completeCondition(conditionName){
+        this.currEpisode.completeCondition(conditionName);
+        if(this.currEpisode.isComplete){
+            this.currEpisodeIndex++;
+            if(this.episodes.length > this.currEpisodeIndex && this.currEpisodeIndex > 0) {
+                this.currEpisode = this.episodes[this.currEpisodeIndex];
+                this.currEpisode.init();
+            }
+
+            
+        }
+    }
+
+    getConditions(){
+        return this.currEpisode.getConditions();
+    }
+
+    init(){
+        this.currEpisode.init();
+    }
+
+}
+
+//Init story
+var story = new Story(
+    [
+        new Episode(
+            [
+                new Scene(
+                    [
+                        new Condition("open_door"),
+                        new Condition("lock_door")
+                    ],
+                    [
+                        "Jim: We need to open this door somehow...","(Maybe i can hack that pannel over there...)"
+                    ],
+                    [
+                        function() {bcdraw_entity(120,120,10,"red");}
+                    ]
+                ),
+                new Scene(
+                    [
+                        new Condition("enable_oxygen")
+                    ],
+                    [
+                        "Jim: Well done...now we need the oxygen","(Okay that makes sense...)"
+                    ],
+                    [
+                        function(){
+                            console.log("Oxyoxy...");
+                            bcdraw_entity(200,150,20,"yellow");
+                            alerted = true;
+                        }
+                    ]
+                )
+            ]
+        )
+    ]
+)
+
+
+
 function printMessage(message,speed){
     printingMessage = true;
     var mb = document.getElementById("message_box");
@@ -101,7 +245,6 @@ function printMessage(message,speed){
 
     intervalPrint(cd,message,speed,function(){
         printingMessage = !printingMessage;
-        alerted = true;
     });
     
 }
@@ -122,10 +265,7 @@ function progressChat(){
     }
 }
 
-
-
-var chat = ["Josh: Jim, help me!","Jim: What is it?","Josh: I can see something outside!","Jim: Josh?","Jim: Josh, are you there???","(I can still see him on radar...maybe i should hack into the cameras there and see whats going on...)"];
-
+var chat;
 var chatIndex=0;
 var printingMessage = false;
 
@@ -145,10 +285,13 @@ function intervalPrint(target,message,interval,callback = null){
 
 
 
+
+
+
 function init(){
     fcdraw_grid(10);
-    mcdraw_lines(2,0);
-    progressChat();
+    mcdraw_lines(4,0);
+    story.init();
     bcdraw_entity(150,140,5,"red");
 }
 
