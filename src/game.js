@@ -61,7 +61,7 @@ function mcdraw_lines(frequency,startPos){
     });
 }
 
-function bcdraw_entity(x,y,size,color){
+function bcdraw_entity(x,y,size,color,tag = "Unknown"){
     var cnv = document.getElementById("bg_canvas");
     var ctx = cnv.getContext('2d');
 
@@ -71,8 +71,12 @@ function bcdraw_entity(x,y,size,color){
     if(x > 0 && x < cW && y > 0 && y < cH){
         ctx.fillStyle = color;
         ctx.fillRect(x,y,size,size);
-    }
 
+        ctx.font = "bold 13px Courier";
+        ctx.textAlign = "stretch";
+        ctx.fillText(tag,x,y-10);
+        
+    }
 }
 
 
@@ -196,7 +200,11 @@ var story = new Story(
                         "Jim: We need to open this door somehow...","(Maybe i can hack that pannel over there...)"
                     ],
                     [
-                        function() {bcdraw_entity(120,120,10,"red");}
+                        function() {
+                            bcdraw_entity(120,120,10,"green","Jim");
+                            bcdraw_entity(150,100,10,"green","Jack");
+                            bcdraw_entity(60,60,20,"yellow","Door lock");
+                        }
                     ]
                 ),
                 new Scene(
@@ -209,7 +217,7 @@ var story = new Story(
                     [
                         function(){
                             console.log("Oxyoxy...");
-                            bcdraw_entity(200,150,20,"yellow");
+                            bcdraw_entity(200,150,30,"yellow","AC pannel");
                             alerted = true;
                         }
                     ]
@@ -292,7 +300,7 @@ function init(){
     fcdraw_grid(10);
     mcdraw_lines(4,0);
     story.init();
-    bcdraw_entity(150,140,5,"red");
+    
 }
 
 
