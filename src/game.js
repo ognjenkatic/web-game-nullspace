@@ -505,12 +505,13 @@ class InteractiveScreen{
 
 // Canvas radar code
 class RadarEntity{
-    constructor(x,y,type,tag,angle=0){
+    constructor(x,y,type,tag,angle=0,scale){
         this.type = type;
         this.tag = tag;
         this.x = x;
         this.y = y;
         this.angle = angle;
+        this.scale = scale;
     }
 }
 
@@ -583,7 +584,7 @@ class Radar{
         });
     }
 
-    bcdraw_entity(x,y,width,height,color,tag = null,type="unknown",angle=0){
+    bcdraw_entity(x,y,width,height,color,tag = null,type="unknown",angle=0,scale=1){
         var cnv = document.getElementById("bg_canvas");
         var ctx = cnv.getContext('2d');
     
@@ -606,6 +607,12 @@ class Radar{
             else if (type == "private")
             {
                 img = document.getElementById("pvtpng");
+            } else if (type == "bulkhead_open")
+            {
+                img = document.getElementById("blkhdo");
+            } else if (type == "bulkhead_closed")
+            {
+                img = document.getElementById("blkhdc");
             }
 
             if (img){
@@ -613,10 +620,10 @@ class Radar{
                 if (angle > 0 ) {
                     ctx.translate(x+img.width/2,y+img.height/2);
                     ctx.rotate(angle* Math.PI / 180);
-                    ctx.drawImage(img,-img.width/2,-img.height/2);
+                    ctx.drawImage(img,-img.width/2,-img.height/2,img.width*scale,img.height*scale);
                 } else
                 {
-                    ctx.drawImage(img,x,y);
+                    ctx.drawImage(img,x,y,img.width*scale,img.height*scale);
                 }
                 ctx.restore();
             }
@@ -628,10 +635,10 @@ class Radar{
     
             if (tag != null)
             {
-                ctx.fillStyle = "white";
-                ctx.font = "bold 12px Courier";
+                ctx.fillStyle = "green";
+                ctx.font = (12*scale)+"px Impact";
                 ctx.textAlign = "stretch";
-                ctx.fillText(tag,x + img.width+5,y+img.height);
+                ctx.fillText(tag,x + (img.width*scale)+5,y+(img.height*scale));
             }
             
         }
@@ -665,18 +672,18 @@ class Radar{
             var ent = entities[i];
             switch (ent.type) {
                 case "up_wall_full":
-                    this.bcdraw_entity(ent.x,0,cW-ent.x,ent.y,"#102f10",ent.tag,ent.type,ent.angle);
+                    this.bcdraw_entity(ent.x,0,cW-ent.x,ent.y,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
                     break;
                 case "down_wall_full":
-                    this.bcdraw_entity(ent.x,ent.y,cW-ent.x,cH,"#102f10",ent.tag,ent.type,ent.angle);
+                    this.bcdraw_entity(ent.x,ent.y,cW-ent.x,cH,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
                     break;
                 case "left_wall_full":
-                    this.bcdraw_entity(0,ent.y,ent.x,cH-ent.y,"#102f10",ent.tag,ent.type,ent.angle);
+                    this.bcdraw_entity(0,ent.y,ent.x,cH-ent.y,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
                     break;
                 case "right_wall_full":
                     break;
                 default:
-                    this.bcdraw_entity(ent.x,ent.y,5,5,"purple",ent.tag,ent.type,ent.angle);
+                    this.bcdraw_entity(ent.x,ent.y,5,5,"purple",ent.tag,ent.type,ent.angle,ent.scale);
                     break;
             }
         }
@@ -884,7 +891,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    
+                    /*
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -963,7 +970,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),
+                    ),*/
                     new Scene(
                         [
                             new Condition("open_door")
@@ -992,10 +999,11 @@ function bootstrapStory(){
                         ],
                         [
                             new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(150,150,"down_wall_full",null),
+                            new RadarEntity(70,70,"down_wall_full",null),
                             new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(50,35,"sargeant","Sgt Whitcomb"),
-                            new RadarEntity(47,20,"console2","Aux. Terminal"),
+                            new RadarEntity(35,45,"sargeant","Sgt Whitcomb"),
+                            new RadarEntity(35,32,"console2","Aux. Terminal"),
+                            new RadarEntity(130,34,"bulkhead_closed","Bulkhead",0,1.9),
                         ]
                     ),
                     new Scene(
@@ -1010,15 +1018,15 @@ function bootstrapStory(){
                             function(){
                                 console.log("Oxyoxy...");
                                 radar.bcdraw_clear();
-                                moveSgt();
                             }
                         ],
                         [
-                            //new RadarEntity(0,30,"up_wall_full",null),
-                            //new RadarEntity(150,150,"down_wall_full",null),
-                            //new RadarEntity(30,0,"left_wall_full",null),
-                            //new RadarEntity(50,70,"marine","Sgt Whitcomb"),
-                            //new RadarEntity(150,150,"hackable","Aux. Terminal"),
+                            new RadarEntity(0,30,"up_wall_full",null),
+                            new RadarEntity(70,70,"down_wall_full",null),
+                            new RadarEntity(30,0,"left_wall_full",null),
+                            new RadarEntity(35,45,"sargeant","Sgt Whitcomb"),
+                            new RadarEntity(35,32,"console2","Aux. Terminal"),
+                            new RadarEntity(130,34,"bulkhead_open",null,0,1.9),
                         ]
                     ),
                     new Scene(
