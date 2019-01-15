@@ -95,9 +95,6 @@ class Machine{
             case("ls"):{
                 return this.ls();
             }
-            case("help"):{
-                break;
-            }
             case("pwd"):{
                 return this.pwd();
             }
@@ -363,8 +360,17 @@ class TypingMinigame{
 class InteractiveScreen{
     constructor(){
         this.scr1 = document.getElementById("screen1");
-        
-        
+    
+    }
+
+    setInputBlocking(block){
+        var input = document.getElementById("prompt");
+        if(block){
+            input.style.display = "none";
+        } else
+        {
+            input.style.display = "block";
+        }
     }
 
     setState(state){
@@ -427,6 +433,15 @@ class InteractiveScreen{
                 currentScreen.setState("OK");
             }
         }
+    }
+
+
+    appendCommandResult(result){
+        var content = document.getElementById("display_content");
+        var newCode = document.createElement("pre");
+        newCode.innerHTML = result;
+        content.appendChild(newCode);
+        currentScreen.scrollToEnd();
     }
 
     fetchCommandInput(event){
@@ -928,8 +943,16 @@ function bootstrapStory(){
                                     new Program("tunnel","creates a terminal to remote hardware",
                                     function(args){
                                         if (args == "auxterm"){
-                                            story.completeCondition("establish_remote_connection");
-                                            return "new terminal spawned!";
+                                            currentScreen.setInputBlocking(true);
+                                            setTimeout(
+                                                function(){
+                                                    currentScreen.appendCommandResult("Success: Connection Established!");
+                                                    story.completeCondition("establish_remote_connection");
+                                                    currentScreen.setInputBlocking(false);
+                                                },3000
+                                            )
+                                            
+                                            return "Attempting to connect to auxterm...";
                                         } else{
                                             return "no such device available";
                                         }
@@ -971,7 +994,7 @@ function bootstrapStory(){
                             new RadarEntity(0,30,"up_wall_full",null),
                             new RadarEntity(150,150,"down_wall_full",null),
                             new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(50,35,"sargeant","Sgt Black"),
+                            new RadarEntity(50,35,"sargeant","Sgt Whitcomb"),
                             new RadarEntity(47,20,"console2","Aux. Terminal"),
                         ]
                     ),
