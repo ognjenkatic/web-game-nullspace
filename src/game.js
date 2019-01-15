@@ -456,24 +456,28 @@ class InteractiveScreen{
 
             var result = currentScreen.processCommandInput(input_val);
 
-            var newInputLine = document.createElement("li");
-            var newInputCode = document.createElement("code");
+            if (result != ""){
+                var newInputLine = document.createElement("li");
+                var newInputCode = document.createElement("code");
 
-            newInputCode.innerHTML = currentMachine.promptInfo()+input_val;
+                newInputCode.innerHTML = currentMachine.promptInfo()+input_val;
 
-            newInputLine.appendChild(newInputCode);
-            content.appendChild(newInputLine);
+                newInputLine.appendChild(newInputCode);
+                content.appendChild(newInputLine);
 
-            var newResultLine = document.createElement("li");
-            var newResultPre = document.createElement("pre");
+                if (result != " "){
+                    var newResultLine = document.createElement("li");
+                    var newResultPre = document.createElement("pre");
 
-            newResultPre.innerHTML = result;
+                    newResultPre.innerHTML = result;
 
-            newResultLine.appendChild(newResultPre);
-            content.appendChild(newResultLine);
-
+                    newResultLine.appendChild(newResultPre);
+                    content.appendChild(newResultLine);
+                }
+                currentScreen.scrollToEnd();
+            }
             input.value = "";
-            currentScreen.scrollToEnd();
+            
         }
     }
 
@@ -891,7 +895,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    /*
+                    
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -970,7 +974,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),*/
+                    ),
                     new Scene(
                         [
                             new Condition("open_door")
@@ -999,11 +1003,11 @@ function bootstrapStory(){
                         ],
                         [
                             new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(70,70,"down_wall_full",null),
+                            new RadarEntity(90,90,"down_wall_full",null),
                             new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(35,45,"sargeant","Sgt Whitcomb"),
-                            new RadarEntity(35,32,"console2","Aux. Terminal"),
-                            new RadarEntity(130,34,"bulkhead_closed","Bulkhead",0,1.9),
+                            new RadarEntity(35,55,"sargeant","Sgt Whitcomb",0,1.5),
+                            new RadarEntity(35,32,"console2","Terminal",0,1.5),
+                            new RadarEntity(180,37,"bulkhead_closed","Bulkhead",0,2.5),
                         ]
                     ),
                     new Scene(
@@ -1022,11 +1026,11 @@ function bootstrapStory(){
                         ],
                         [
                             new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(70,70,"down_wall_full",null),
+                            new RadarEntity(90,90,"down_wall_full",null),
                             new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(35,45,"sargeant","Sgt Whitcomb"),
-                            new RadarEntity(35,32,"console2","Aux. Terminal"),
-                            new RadarEntity(130,34,"bulkhead_open",null,0,1.9),
+                            new RadarEntity(35,55,"sargeant","Sgt Whitcomb",0,1.5),
+                            new RadarEntity(35,32,"console2","Terminal",0,1.5),
+                            new RadarEntity(180,37,"bulkhead_open",null,0,2.5),
                         ]
                     ),
                     new Scene(
