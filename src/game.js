@@ -52,6 +52,7 @@ class FS{
     }
 }
 
+
 class Machine{
 
     constructor(){
@@ -60,6 +61,109 @@ class Machine{
         this.currentUser = "root";
         this.ip = "192.168.0.5";
         this.cwd = this.fileSystem.rootDir.getChildEntry("#home");
+        this.services = [];
+        this.programs = [];
+
+
+    }
+
+    addProgram(program){
+        this.programs.push(program);
+    }
+
+    runProgram(name,args){
+        switch(name){
+            case(""):{
+                return " ";
+            }
+            case("help"):{
+                var retval = "";
+                retval += "help\t\t: shows the programs this machine can run.\n";
+                retval += "ls\t\t: lists the contents of the current directory.\n";
+                retval += "pwd\t\t: displays the current working directory.\n";
+                retval += "ifconfig\t: displays the network configuration of the machine.\n";
+                retval += "cd\t\t: changes the current working directory. The first argument is the name of the directory.\n"
+                retval += "cls\t\t: clear the screen.\n";
+
+                for(var i=0;i<this.programs.length;i++){
+                    retval += this.programs[i].name+"\t\t: "+this.programs[i].description+"\n";
+                }
+
+                return retval;
+                
+            }
+            case("ls"):{
+                return this.ls();
+            }
+            case("help"):{
+                break;
+            }
+            case("pwd"):{
+                return this.pwd();
+            }
+            case("ifconfig"):{
+                return  "lo\tLink encap:Local Loopback\n"+
+                          "\tinet addr:127.0.0.1  Mask:255.0.0.0\n"+
+                          "\tinet6 addr: ::1/128 Scope:Host\n"+
+                          "\tUP LOOPBACK RUNNING  MTU:16436  Metric:1\n"+
+                          "\tRX packets:8 errors:0 dropped:0 overruns:0 frame:0\n"+
+                          "\tTX packets:8 errors:0 dropped:0 overruns:0 carrier:0\n"+
+                          "\tcollisions:0 txqueuelen:0\n"+
+                          "\tRX bytes:480 (480.0 b)  TX bytes:480 (480.0 b)\n\n"+
+                "eth0\tLink encap:Ethernet  HWaddr 00:1C:C0:AE:B5:E6\n"+  
+                          "\tinet addr:"+this.ip+" Bcast:192.168.0.255  Mask:255.255.255.0\n"+
+                          "\tinet6 addr: fe80::21c:c0ff:feae:b5e6/64 Scope:Link\n"+
+                          "\tUP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1\n"+
+                          "\tRX packets:41620 errors:0 dropped:0 overruns:0 frame:0\n"+
+                          "\tTX packets:40231 errors:0 dropped:0 overruns:0 carrier:0\n"+
+                          "\tcollisions:0 txqueuelen:1000 \n"+
+                          "\tRX bytes:21601203 (20.6 MiB)  TX bytes:6145876 (5.8 MiB)\n"+
+                          "\tInterrupt:21 Base address:0xe000\n"
+            }
+            case("cd"):{
+                this.cd(args[1]);
+            }
+            case("cls"):{
+                var content = document.getElementById("display_content");
+                if(content){
+                    content.innerHTML = "";
+                }
+
+                return "";
+            }
+
+
+        }
+      
+        for(var i=0;i<this.programs.length;i++){
+            if (this.programs[i].name == name){
+                return this.programs[i].callback(args);
+            }
+        }
+
+        return "unknown command";
+        
+    }
+    addService(service){
+        this.services.push(service);
+    }
+
+    removeService(name){
+        for(var i=0;i<this.services.length;i++){
+            if(this.services[i].name == name){
+                this.services.splice(i,1);
+                return;
+            }
+        }
+    }
+
+    setServiceState(name,running){
+        for(var i=0;i<this.services.length;i++){
+            if(this.services[i].name == name){
+                this.services[i].running = running;
+                return;
+            }
+        }
     }
     
     pwd(){
@@ -102,6 +206,42 @@ class Machine{
     }
 }
 
+class Program{
+    constructor(name,description,callback){
+        this.name = name;
+        this.description = description;
+        this.callback = callback;
+    }
+
+    execute(args){
+        return this.callback(args);
+    }
+}
+class Service{
+    constructor(port,name,running,callback){
+        this.port = port;
+        this.name = name;
+        this.running = running;
+        this.callback = callback;
+    }
+
+    call(args){
+        if(this.running){
+            return this.callback(args);
+        }
+    }
+}
+class Network{
+    constructor(subnet,netmask,machines){
+        this.subnet = subnet;
+        this.netmask = netmask;
+        this.machines = machines;
+    }
+
+    scan(){
+        return this.machines;
+    }
+}
 class TypingMinigame{
     constructor(speed,dictionary,targetHits,maxMisses){
         this.speed = speed;
@@ -333,62 +473,16 @@ class InteractiveScreen{
     }
 
     processCommandInput(input){
-        if(input == "hack"){
-            currentScreen.setState("hacking");
-        }
-        else if (input.includes("brfread")){
-            story.completeCondition("briefing_opened");
-            return "Rendering brief..."
-        }
-        else if (input == "")
-            return " ";
-        else if (input == "ls")
-            return currentMachine.ls();
-        else if (input == "help") {
-            return `
-        ls  - list directory contents
-        pwd - print working directory
-        ifconfig - list network interfaces
-        brfread - read mission briefing`;
-        } 
-        else if (input == "pwd") {
-            return currentMachine.pwd();
-        } 
-        else if (input == "ifconfig"){
-        
-            return `
-        lo        Link encap:Local Loopback  
-                  inet addr:127.0.0.1  Mask:255.0.0.0
-                  inet6 addr: ::1/128 Scope:Host
-                  UP LOOPBACK RUNNING  MTU:16436  Metric:1
-                  RX packets:8 errors:0 dropped:0 overruns:0 frame:0
-                  TX packets:8 errors:0 dropped:0 overruns:0 carrier:0
-                  collisions:0 txqueuelen:0 
-                  RX bytes:480 (480.0 b)  TX bytes:480 (480.0 b)
-        
-        p2p1      Link encap:Ethernet  HWaddr 00:1C:C0:AE:B5:E6  
-                  inet addr:192.168.0.5  Bcast:192.168.0.255  Mask:255.255.255.0
-                  inet6 addr: fe80::21c:c0ff:feae:b5e6/64 Scope:Link
-                  UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-                  RX packets:41620 errors:0 dropped:0 overruns:0 frame:0
-                  TX packets:40231 errors:0 dropped:0 overruns:0 carrier:0
-                  collisions:0 txqueuelen:1000 
-                  RX bytes:21601203 (20.6 MiB)  TX bytes:6145876 (5.8 MiB)
-                  Interrupt:21 Base address:0xe000 `
-        }
-        else if (input.includes("cd")){
-            var tar = input.split(" ")[1];
-            currentMachine.cd(tar);
-            return "";
-        } else if (input == "cls"){
-            var content = document.getElementById("display_content");
-            if(content){
-                content.innerHTML = "";
-            }
+        var splitInput = input.split(" ");
+        var cmnd = splitInput.slice(0,1)[0];
+        var args = splitInput.slice(1);
 
-            return "";
+        if(cmnd == "hack"){
+            currentScreen.setState("hacking");
+        } else
+        {
+            return currentMachine.runProgram(cmnd,args);
         }
-        return "Unknown command";
     }
 
     
@@ -781,16 +875,30 @@ function bootstrapStory(){
                             new Condition("briefing_opened")
                         ],
                         [
-                            "(Sullivan: Man...the academy did not prepare me for the horrible sleeping conditions on these mk.2 ships..)",
-                            "(Sullivan: I've barely got any sleep)",
+                            "(Sullivan: ...)",
+                            "(Sullivan: This starship coffee is horrible... and I've barely gotten any sleep)",
                             "(Sullivan: Anyway, I should review the mission briefing once more before the start)",
                             "(Sullivan: It should be in my home directory under the name gamm2.brf)",
-                            "(Sullivan: If I remmember correctly these should be opened with the brfread tool, so brfread gamm2.brf)"
+                            "(Sullivan: If I remmember correctly these should be opened with the brfread tool, so i need to enter brfread gamm2.brf into the terminal)"
                         ],
                         [
-                            function(){
+                            function() {
+                                console.log("setting up scene 1");
+                                console.log("setting up machine filesystem");
                                 currentMachine.touch("gamm2.brf");
-                                
+                                console.log("setting up machine programs");
+                                currentMachine.addProgram(
+                                    new Program("brfread","render the briefing.",
+                                    function(args){
+                                        if (!args || args.length == 0)
+                                            return "file name not supplied, enter: brfread filename"; 
+                                        if (args && args[0] == "gamm2.brf"){
+                                            story.completeCondition("briefing_opened");
+                                            return "Rendering briefing...";
+                                        }
+                                        return "File not found!";
+                                    })
+                                );
                             }
                         ],
                         [
@@ -799,22 +907,35 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("open_door"),
-                            new Condition("lock_door")
+                            new Condition("establish_remote_connection")
                         ],
                         [
-                            "Greetings mr. Sullivan, as you are most probably aware of by now, an unmarked abandoned space ship has been located at the edge of our solar system.",
-                            "Its origins are unknown, but technology bears resemblance to our own.",
-                            "We suspect it belongs to a rogue fraction of human kind but further investigation is needed in order to determine its true origins and its purpose.",
-                            "For that reason a recon task force has been assigned to search the ship for any survivors or piece of information that could shed light on the whole scenario.",
-                            "You will be in charge of assisting the deployed team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
-                            "We cannot give you any precise guidelines as we don't know what to expect, but we count on your adaptability and improvisation skills. You are, after all, one of the finest.",
-                            "Soldiers are expendable, information is invaluable. make us proud!"
+                            "HIGH COMMAND: Greetings mr. Sullivan, as you are most probably aware of by now, an unmarked abandoned space ship has been located at the edge of our solar system.",
+                            "HIGH COMMAND: Its origins are unknown, but technology bears resemblance to our own.",
+                            "HIGH COMMAND: We suspect it belongs to a rogue fraction of human kind but further investigation is needed in order to determine its true origins and its purpose.",
+                            "HIGH COMMAND: For that reason a recon task force has been assigned to search the ship for any survivors or piece of information that could shed light on the whole scenario.",
+                            "HIGH COMMAND: You will be in charge of assisting the deployed team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
+                            "HIGH COMMAND: We cannot give you any precise guidelines as we don't know what to expect, but we count on your adaptability and improvisation skills. You are, after all, one of the finest.",
+                            "HIGH COMMAND: Soldiers are expendable, information is invaluable. make us proud!",
+                            "(Sullivan: Well that sounded as cheerfull as can be...)",
+                            "(Sullivan: The marines should be done setting up the remote access box by now. If so i should be able to access it using the tunnel command)",
+                            "(Sullivan: The command should be tunnel auxterm if i remember the address correctly)"
                         ],
                         [
-                            function() {
-                                console.log("act1");
-                            }
+                            function(){
+                                console.log("setting up scene 2");
+                                currentMachine.addProgram(
+                                    new Program("tunnel","creates a terminal to remote hardware",
+                                    function(args){
+                                        if (args == "auxterm"){
+                                            story.completeCondition("establish_remote_connection");
+                                            return "new terminal spawned!";
+                                        } else{
+                                            return "no such device available";
+                                        }
+                                    })
+                                );
+                            }  
                         ],
                         [
 
