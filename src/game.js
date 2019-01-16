@@ -252,7 +252,8 @@ class TypingMinigame{
         this.currentHits = 0;
         this.maxMisses = maxMisses;
         this.currentMisses = 0;
-        
+        this.percent = 0;
+        this.streakCount = 0;
     }
 
     hasPlayerWon(){
@@ -282,7 +283,7 @@ class TypingMinigame{
 
     fall(elly){
         var tpar = parseInt(elly.style.top.replace("px",""))
-        if(tpar <= 900){
+        if(tpar <= 768){
             
             elly.style.top = (tpar+=currentMinigame.speed)+"px";
             window.requestAnimationFrame(function(){currentMinigame.fall(elly);});
@@ -297,7 +298,9 @@ class TypingMinigame{
             if(this.displayedElements[i].innerHTML == elly.innerHTML){
                 this.displayedElements[i].remove();
                 this.displayedElements.splice(i,1);
+                this.animateFailure();
                 this.currentMisses++;
+                this.streakCount = 0;
                 return;
             }
         }
@@ -306,15 +309,55 @@ class TypingMinigame{
     validateInput(input){
         for(var i=0;i<this.displayedElements.length;i++){
             if(this.displayedElements[i].innerHTML == input){
-                this.displayedElements[i].remove();
+                this.animateSuccess(this.displayedElements[i]);
                 this.displayedElements.splice(i,1);
-
+                
 
                 this.currentHits++;
+                this.streakCount++;
                 return true;
             }
         }
         return false;
+    }
+
+    animateFailure(){
+        if (!this.isRunning){
+            return;
+        }
+        if (this.percent < 100){
+            var bk = document.getElementById("screen1");
+            bk.style.background = "linear-gradient(to bottom, red 0%,red "+this.percent+"%,orange 0%)";
+            this.percent+=10;
+            window.requestAnimationFrame(
+                function(){
+                    currentMinigame.animateFailure();
+                }
+            )
+        }else{
+            this.percent = 0;
+            var bk = document.getElementById("screen1");
+            bk.style.background = "orange";
+        }
+        
+
+    }
+    animateSuccess(elly){
+        if (!this.isRunning){
+            return;
+        }
+        var fs =parseInt(window.getComputedStyle(elly).getPropertyValue("font-size"));
+        if (fs > 60){
+            elly.remove();
+        }else{
+            fs+=2;
+            elly.style.fontSize = fs+"px";
+            window.requestAnimationFrame(
+                function(){
+                    currentMinigame.animateSuccess(elly);
+                }
+            );
+        }
     }
 
     start(){
@@ -334,11 +377,12 @@ class TypingMinigame{
             var wcon = this.dictionary[getRndInteger(0,this.dictionary.length)];
             var drl = document.createElement("label");
             drl.className = "droppy";
-            drl.style.left = 250 + getRndInteger(0,800)+"px";
-            drl.style.top = 150 + getRndInteger(0,200)+"px";
+            drl.style.left = 100 + getRndInteger(0,800)+"px";
+            drl.style.top = "0px";
             drl.style.fontSize = 25 + getRndInteger(0,30);
             drl.innerHTML = wcon;
-            document.body.appendChild(drl);
+            document.getElementById("fall_container").appendChild(drl);
+            
             
             this.displayedElements.push(drl);
 
