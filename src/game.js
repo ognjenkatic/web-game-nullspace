@@ -442,6 +442,7 @@ class InteractiveScreen{
             cln.addEventListener("keyup",this.fetchCommandInput);
             parent.replaceChild(cln,input);
             document.getElementById("screen1").style.backgroundColor = "black";
+            cln.focus();
         }
     }
 
@@ -743,6 +744,7 @@ class Condition{
     constructor(name){
         this.name = name;
         this.completed = false;
+    
     }
 }
 
@@ -788,11 +790,12 @@ class Scene{
 }
 
 class Episode{
-    constructor(scenes){
+    constructor(scenes,title){
         this.scenes = scenes;
         this.isComplete = false;
         this.currSceneIndex = 0;
         this.currScene = this.scenes[this.currSceneIndex];
+        this.title = title;
         
     }
 
@@ -812,7 +815,8 @@ class Episode{
     }
 
     init(){
-        this.currScene.init();        
+        this.currScene.init();
+        document.title = this.title;      
     }
 }
 
@@ -1099,7 +1103,7 @@ function bootstrapStory(){
                             new RadarEntity(70,90,"unknown","unknown")
                         ]
                     )
-                ]
+                ], "Introduction"
             )
         ]
     )
