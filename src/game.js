@@ -240,7 +240,7 @@ class Network{
     }
 }
 class TypingMinigame{
-    constructor(speed,dictionary,targetHits,maxMisses){
+    constructor(speed,dictionary,targetHits,maxMisses,successCallback,failCallback){
         this.speed = speed;
         this.dictionary = dictionary;
         this.displayedElements = [];
@@ -254,6 +254,9 @@ class TypingMinigame{
         this.currentMisses = 0;
         this.percent = 0;
         this.streakCount = 0;
+        this.successCallback = successCallback;
+        this.failCallback = failCallback;
+
     }
 
     hasPlayerWon(){
@@ -279,6 +282,14 @@ class TypingMinigame{
             this.cmplt = true;
         }
         
+    }
+
+    triggerSuccess(){
+        this.successCallback();
+    }
+
+    triggerFailure(){
+        this.failCallback();
     }
 
     fall(elly){
@@ -372,6 +383,7 @@ class TypingMinigame{
     refresh(){
         if (this.currentHits >= this.targetHits){
             stop();
+            this.triggerSuccess();
         }
         else if (this.currentMisses < this.maxMisses){
             var wcon = this.dictionary[getRndInteger(0,this.dictionary.length)];
@@ -396,6 +408,7 @@ class TypingMinigame{
         }
         else{
             stop();
+            this.triggerFailure();
         }
     }
 
@@ -424,7 +437,6 @@ class InteractiveScreen{
 
         if(state == "hacking"){
             currentMachine.state = "hacking";
-            currentMinigame = new TypingMinigame(1,words,20,10);
             var cln = input.cloneNode();
             cln.addEventListener("keyup",this.fetchHackInput);
             parent.replaceChild(cln,input);
@@ -554,13 +566,15 @@ class InteractiveScreen{
 
 // Canvas radar code
 class RadarEntity{
-    constructor(x,y,type,tag,angle=0,scale){
+    constructor(x,y,type,tag,angle=0,scale=1,width=10,height=10){
         this.type = type;
         this.tag = tag;
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.scale = scale;
+        this.width = width;
+        this.height = height;
     }
 }
 
@@ -720,6 +734,9 @@ class Radar{
         for(var i=0;i<entities.length;i++){
             var ent = entities[i];
             switch (ent.type) {
+                case "bound_wall":
+                    this.bcdraw_entity(ent.x,ent.y,ent.width,ent.height,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
+                    break;
                 case "up_wall_full":
                     this.bcdraw_entity(ent.x,0,cW-ent.x,ent.y,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
                     break;
@@ -943,7 +960,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    
+                    /*
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -1022,7 +1039,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),
+                    ),*/
                     new Scene(
                         [
                             new Condition("open_door")
@@ -1045,13 +1062,22 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentMinigame = new TypingMinigame(1,words,20,10,
+                                    function(){
+                                        story.completeCondition("open_door");
+                                    },
+                                    function(){
+                                        console.log("Hack failed");
+                                    })
+                            },
+                            function(){
                                 console.log("Oxyoxy...");
                                 radar.bcdraw_clear();
                             }
                         ],
                         [
                             new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(90,90,"down_wall_full",null),
+                            new RadarEntity(90,90,"bound_wall",null,0,1,200,400),
                             new RadarEntity(30,0,"left_wall_full",null),
                             new RadarEntity(35,55,"sargeant","Sgt Whitcomb",0,1.5),
                             new RadarEntity(35,32,"console2","Terminal",0,1.5),
