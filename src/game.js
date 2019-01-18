@@ -599,10 +599,14 @@ class RadarEntity{
 
 class Radar{
     constructor(resolution,lineFreq){
+
+        if (radar){
+            radar.stopped = true;
+        }
         this.alerted = false;
         this.alertRadarStroke = "rgba(200,0,0,0.8)";
         this.calmRadarStroke = "rgba(0,200,0,0.5)";
-        this.alerted = false;
+        this.stopped = false;
         this.currentRadarStroke = this.calmRadarStroke;
 
         this.bcdraw_clear();
@@ -610,6 +614,7 @@ class Radar{
         this.mcdraw_lines(lineFreq,0);
     }
 
+    
     fcdraw_grid(resolution){
 
         var cnv = document.getElementById("fg_canvas");
@@ -663,7 +668,8 @@ class Radar{
         var ccontext = this;
         window.requestAnimationFrame(function()
         {
-            ccontext.mcdraw_lines(frequency,startPos+frequency);
+            if(!ccontext.stopped)
+                ccontext.mcdraw_lines(frequency,startPos+frequency);
         });
     }
 
