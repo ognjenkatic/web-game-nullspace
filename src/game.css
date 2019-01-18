@@ -1,8 +1,23 @@
 img{
   vertical-align: middle;
 }
+
 .placed{
   position:absolute;
+}
+
+.menu_button{
+  color : green;
+  margin-top: 10px;
+  font-family:'Courier New', Courier, monospace;
+}
+
+.menu_separator{
+  color : green;
+  margin-top: 30px;
+  border-bottom: solid 1px;
+  padding: 5px;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 #prompt{
@@ -10,9 +25,19 @@ img{
   top:740px;
   left:5px;
   margin:0px;
+  z-index: 1000;
 }
 
-
+#menu{
+  position:absolute;
+  height:768px;
+  width:1024px;
+  z-index: 1001;
+  text-align: center;
+  cursor: pointer;
+  height: 40px;
+  /* width: 200px; */
+}
 #display{
   position:absolute;
   top:0px;

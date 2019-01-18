@@ -504,8 +504,12 @@ class InteractiveScreen{
     fetchCommandInput(event){
         event.preventDefault();
 
-        // Enter pressed
-        if(event.keyCode === 13 ){
+        if (event.keyCode == 27){
+            currentScreen.hide();
+            menu.display();
+        }
+        else if(event.keyCode === 13 )
+        {
             var input = document.getElementById("prompt_input");
             var content = document.getElementById("display_content");
 
@@ -559,6 +563,16 @@ class InteractiveScreen{
         {
             return currentMachine.runProgram(cmnd,args);
         }
+    }
+
+    hide(){
+        document.getElementById("display").style.display = "none";
+        document.getElementById("prompt").style.display = "none";
+    }
+
+    display(){
+        document.getElementById("display").style.display = "block";
+        document.getElementById("prompt").style.display = "block";
     }
 
     
@@ -789,30 +803,25 @@ class Scene{
     }
 
     init(){
-        
-        messageManager.chat = this.conversation;
-        messageManager.chatIndex = 0;
-
-        
         if(this.inits)
             for(var i =0;i<this.inits.length;i++){
                 this.inits[i]();
             }
-
+        messageManager.chat = this.conversation;
+        messageManager.chatIndex = 0;
         radar.drawEntities(this.entities);
         messageManager.progressChat();
-
-        
     }
 }
 
 class Episode{
-    constructor(scenes,title){
+    constructor(scenes,title,code){
         this.scenes = scenes;
         this.isComplete = false;
         this.currSceneIndex = 0;
         this.currScene = this.scenes[this.currSceneIndex];
         this.title = title;
+        this.code = code;
         
     }
 
@@ -857,6 +866,18 @@ class Story{
             
         }
     }
+
+    loadEpisode(index,code){
+        if (this.episodes.length > index){
+            if (index == 0 || this.episodes[index].code == code){
+                this.currEpisode = this.episodes[index];
+                console.log("loaded "+this.episodes[index].title);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     getConditions(){
         return this.currEpisode.getConditions();
@@ -924,7 +945,21 @@ class MessageManager{
     }
 }
 
+class Menu{
+    constructor(){
 
+    }
+
+    display(){
+        document.getElementById("menu").style.display = "block";
+    }
+
+    hide(){
+        document.getElementById("menu").style.display = "none";
+    }
+
+
+}
 
 // Helper code
 function intervalPrint(target,message,interval,callback = null){
@@ -960,7 +995,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    /*
+                    
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -973,6 +1008,13 @@ function bootstrapStory(){
                             "(Sullivan: If I remmember correctly these should be opened with the brfread tool, so i need to enter brfread gamm2.brf into the terminal)"
                         ],
                         [
+                            function(){
+                                radar = new Radar(10,2);
+                                messageManager = new MessageManager();
+                                currentMachine = new Machine();
+                                currentScreen = new InteractiveScreen();
+                                currentScreen.setState("OK");
+                            },
                             function() {
                                 console.log("setting up scene 1");
                                 console.log("setting up machine filesystem");
@@ -1039,7 +1081,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),*/
+                    ),
                     new Scene(
                         [
                             new Condition("open_door")
@@ -1129,7 +1171,7 @@ function bootstrapStory(){
                             new RadarEntity(70,90,"unknown","unknown")
                         ]
                     )
-                ], "Introduction"
+                ], "Episode I : Introductions", ""
             )
         ]
     )
@@ -1157,6 +1199,26 @@ function moveSgt(re){
     )
 }
 
+function toggleMenu()
+{
+    return false;
+}
+
+
+function exitMenu(){
+    if (currentScreen){
+        menu.hide();
+        currentScreen.display();
+    }
+}
+function loadEpisode(index){
+    var code = (index == 0)? "" : prompt("Please enter the episode code:", "");
+    if (story.loadEpisode(index,code)){
+        menu.hide();
+        story.init();
+        currentScreen.display();
+    }
+}
 
 // Globals
 var radar;
@@ -1166,16 +1228,12 @@ var currentScreen;
 var currentMinigame;
 var words = ["unknown","continue","buffer","overflow","cross","site","reflection","middle","man","certificate","foreach","interface","dissasemble","working","set","namespace","hack","mysql","injection"];
 var story;
+var menu;
 // Main
 function init(){
-    radar = new Radar(10,2);
-    messageManager = new MessageManager();
-    currentMachine = new Machine();
-    currentScreen = new InteractiveScreen();
-    currentScreen.setState("OK");
     bootstrapStory();
-    story.init();
-    
+    menu = new Menu();
+
 }
 
 

@@ -15,13 +15,25 @@
   <body onload="init()">
     <div id="overlay"  ></div>
     <div class="placed" id="screen1" onclick="focusPrompt()">
-      <div id="display">
+      <div id="display" style="display:none;">
         <ul id="display_content">
         </ul>
       </div>
-      <div id="prompt">
-          <code id="prompt_info">root@192.168.0.5:</code>
-          <input type="text" id="prompt_input">
+      <div id="prompt" style="display:none;">
+        <code id="prompt_info">root@192.168.0.5:</code>
+        <input type="text" id="prompt_input">
+      </div>
+      <div id="menu">
+        <div class="menu_separator">Load Episodes</div>
+        <div class="menu_button"  onclick="loadEpisode(0)">Episode I (no code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(1)" style="color:yellow;">Episode II (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(2)" style="color:yellow;">Episode III (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(3)" style="color:yellow;">Episode IV (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(4)" style="color:yellow;">Episode V (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(5)" style="color:yellow;">Episode VI (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(6)" style="color:yellow;">Episode VII (code needed)</div>
+        <div class="menu_separator">Options</div>
+        <div class="menu_button" onclick="exitMenu()">Exit Menu</div>
       </div>
     </div>
     <div class="placed" id="screen2"  >
