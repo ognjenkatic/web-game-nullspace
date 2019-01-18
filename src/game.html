@@ -24,7 +24,7 @@
         <input type="text" id="prompt_input">
       </div>
       <div id="menu">
-        <div class="menu_separator">Load Episodes</div>
+        <div class ="game_title" id="game_title"><h1>NULL Space</h1></div>
         <div class="menu_button"  onclick="loadEpisode(0)">Episode I (no code needed)</div>
         <div class="menu_button"  onclick="loadEpisode(1)" style="color:yellow;">Episode II (code needed)</div>
         <div class="menu_button"  onclick="loadEpisode(2)" style="color:yellow;">Episode III (code needed)</div>
@@ -32,8 +32,7 @@
         <div class="menu_button"  onclick="loadEpisode(4)" style="color:yellow;">Episode V (code needed)</div>
         <div class="menu_button"  onclick="loadEpisode(5)" style="color:yellow;">Episode VI (code needed)</div>
         <div class="menu_button"  onclick="loadEpisode(6)" style="color:yellow;">Episode VII (code needed)</div>
-        <div class="menu_separator">Options</div>
-        <div class="menu_button" onclick="exitMenu()">Exit Menu</div>
+        <div class="menu_button" id="exit_menu_button" style="display: none;" onclick="exitMenu()">Exit Menu</div>
       </div>
     </div>
     <div class="placed" id="screen2"  >

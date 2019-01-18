@@ -1,18 +1,53 @@
 img{
   vertical-align: middle;
 }
+
 .placed{
   position:absolute;
 }
 
+.menu_button:hover{
+  font-size:35px;
+}
+.menu_button{
+  color : green;
+  padding: 5px;
+  font-family:'Courier New', Courier, monospace;
+}
+
+.menu_separator{
+  color : green;
+  margin-top: 0px;
+  border-bottom: solid 1px;
+  padding: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 30px;
+}
+
+#game_title{
+  color : green;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 80px;
+  text-shadow: 2px 2px 4px #ff8d00d1;
+}
 #prompt{
   position:absolute;
   top:740px;
   left:5px;
   margin:0px;
+  z-index: 1000;
 }
 
-
+#menu{
+  position:absolute;
+  height:768px;
+  width:1024px;
+  z-index: 1001;
+  text-align: center;
+  cursor: pointer;
+  height: 40px;
+  /* width: 200px; */
+}
 #display{
   position:absolute;
   top:0px;
@@ -50,12 +85,12 @@ img{
   word-wrap: break-word;
   border-style: groove;
   border-width: 2px;
-  //text-align:center;
+  
 }
 
 .droppy{
-  position:absolute;
-  z-Index:1002;
+  position: absolute;
+  font-size: 25px;
 }
 
 canvas{
@@ -82,11 +117,22 @@ canvas{
 }
 
 #screen1{
-  top:183px;
+  top: 183px;
   left:61px;
   height:768px;
   width:1024px;
   z-index: 1001;
+}
+
+#fall_container{
+  top: 183px;
+  left:61px;
+  height:768px;
+  width:1024px;
+  z-index: 1001;
+  position: absolute;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 body {

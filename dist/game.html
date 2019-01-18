@@ -3,27 +3,45 @@
   <head>
     <link rel="stylesheet" href="game.css">
     <script src="min_game.js"></script>
+    <title>Null Space</title>
+    <link rel="icon" href="nspc.png">
   </head>
   <img id="cns1png" style="display:none;" src="cns1.png">
   <img id="cns2png" style="display:none;" src="cns2.png">
   <img id="sgtpng" style="display:none;" src="sgt.png">
   <img id="pvtpng" style="display:none;" src="pvt.png">
+  <img id="blkhdo" style="display:none;" src="bulkhead_open.png">
+  <img id="blkhdc" style="display:none;" src="bulkhead_closed.png">
   <body onload="init()">
     <div id="overlay"  ></div>
     <div class="placed" id="screen1" onclick="focusPrompt()">
-      <div id="display">
+      <div id="display" style="display:none;">
         <ul id="display_content">
         </ul>
       </div>
-      <div id="prompt">
-          <code id="prompt_info">root@192.168.0.5:</code>
-          <input type="text" id="prompt_input">
+      <div id="prompt" style="display:none;">
+        <code id="prompt_info">root@192.168.0.5:</code>
+        <input type="text" id="prompt_input">
+      </div>
+      <div id="menu">
+        <div class ="game_title" id="game_title"><h1>NULL Space</h1></div>
+        <div class="menu_button"  onclick="loadEpisode(0)">Episode I (no code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(1)" style="color:yellow;">Episode II (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(2)" style="color:yellow;">Episode III (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(3)" style="color:yellow;">Episode IV (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(4)" style="color:yellow;">Episode V (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(5)" style="color:yellow;">Episode VI (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(6)" style="color:yellow;">Episode VII (code needed)</div>
+        <div class="menu_button" id="exit_menu_button" style="display: none;" onclick="exitMenu()">Exit Menu</div>
       </div>
     </div>
     <div class="placed" id="screen2"  >
-      <canvas class="placed" width="480x" height="320px" id="bg_canvas"></canvas>
+      <canvas class="placed" width="720x" height="480px" id="bg_canvas"></canvas>
       <canvas class="placed" width="720px" height="480px" id="mg_canvas"></canvas>
       <canvas class="placed" width="720px" height="480px" id="fg_canvas" ></canvas>
+    </div>
+    <div id="fall_container">
+        
     </div>
   </body>
 </html>

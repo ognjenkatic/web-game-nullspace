@@ -417,6 +417,7 @@ class TypingMinigame{
 class InteractiveScreen{
     constructor(){
         this.scr1 = document.getElementById("screen1");
+        this.clear();
     
     }
 
@@ -435,7 +436,7 @@ class InteractiveScreen{
         var parent = input.parentNode;
 
 
-        if(state == "hacking"){
+        if(state == "hacking" && currentMinigame){
             currentMachine.state = "hacking";
             var cln = input.cloneNode();
             cln.addEventListener("keyup",this.fetchHackInput);
@@ -565,6 +566,10 @@ class InteractiveScreen{
         }
     }
 
+    clear(){
+        document.getElementById("display_content").innerHTML = "";
+    }
+
     hide(){
         document.getElementById("display").style.display = "none";
         document.getElementById("prompt").style.display = "none";
@@ -600,6 +605,7 @@ class Radar{
         this.alerted = false;
         this.currentRadarStroke = this.calmRadarStroke;
 
+        this.bcdraw_clear();
         this.fcdraw_grid(resolution);
         this.mcdraw_lines(lineFreq,0);
     }
@@ -803,6 +809,9 @@ class Scene{
     }
 
     init(){
+        for(var i=0;i<this.conditions.left;i++){
+            this.conditions[i].completed  =false;
+        }
         if(this.inits)
             for(var i =0;i<this.inits.length;i++){
                 this.inits[i]();
@@ -836,6 +845,12 @@ class Episode{
         }
     }
 
+    reset(){
+        this.currSceneIndex = 0;
+        this.isComplete = false;
+        this.currScene = this.scenes[this.currSceneIndex];
+    }
+
     getConditions(){
         return this.currScene.conditions;
     }
@@ -851,7 +866,7 @@ class Story{
         this.episodes = episodes;
         this.name = "Nullspace";
         this.currEpisodeIndex = 0;
-        this.currEpisode = this.episodes[this.currEpisodeIndex];
+        this.currEpisode = null;
     }
 
     completeCondition(conditionName){
@@ -871,6 +886,7 @@ class Story{
         if (this.episodes.length > index){
             if (index == 0 || this.episodes[index].code == code){
                 this.currEpisode = this.episodes[index];
+                this.currEpisode.reset();
                 console.log("loaded "+this.episodes[index].title);
                 return true;
             }
@@ -951,6 +967,14 @@ class Menu{
     }
 
     display(){
+
+        if (!story.currEpisode)
+        {
+            document.getElementById("exit_menu_button").style.display = "none";
+        }else
+        {
+            document.getElementById("exit_menu_button").style.display = "block";
+        }
         document.getElementById("menu").style.display = "block";
     }
 
@@ -1016,6 +1040,7 @@ function bootstrapStory(){
                                 currentScreen.setState("OK");
                             },
                             function() {
+
                                 console.log("setting up scene 1");
                                 console.log("setting up machine filesystem");
                                 currentMachine.touch("gamm2.brf");
@@ -1204,7 +1229,13 @@ function toggleMenu()
     return false;
 }
 
+function enterMenu(){
+    if(!menu){
+        menu = new Menu();
+    }
+    menu.display();
 
+}
 function exitMenu(){
     if (currentScreen){
         menu.hide();
@@ -1232,7 +1263,7 @@ var menu;
 // Main
 function init(){
     bootstrapStory();
-    menu = new Menu();
+    enterMenu();
 
 }
 
