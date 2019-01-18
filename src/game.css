@@ -8,11 +8,15 @@ img{
 
 .menu_button:hover{
   font-size:35px;
+  opacity: 1;
+  border: solid;
+  border-width: 3px 0px 1px 0px;
 }
 .menu_button{
   color : green;
   padding: 5px;
   font-family:'Courier New', Courier, monospace;
+  opacity: 0.7;
 }
 
 .menu_separator{
@@ -26,6 +30,7 @@ img{
 
 #game_title{
   color : green;
+  cursor: default;
   font-family: 'Courier New', Courier, monospace;
   font-size: 80px;
   text-shadow: 2px 2px 4px #ff8d00d1;

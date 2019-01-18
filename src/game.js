@@ -477,7 +477,7 @@ class InteractiveScreen{
 
         if(!hackContent){
             var hackParent = document.createElement("li");
-            hackContent = document.createElement("pre");
+            hackContent = document.createElement("code");
             hackContent.id = "hack_content";
             hackParent.appendChild(hackContent);
             content.appendChild(hackContent);
@@ -863,6 +863,13 @@ class Episode{
     }
 
     init(){
+
+        radar = new Radar(10,2);
+        messageManager = new MessageManager();
+        currentMachine = new Machine();
+        currentScreen = new InteractiveScreen();
+        currentScreen.setState("OK");
+
         this.currScene.init();
         document.title = this.title;      
     }
@@ -975,7 +982,7 @@ class Menu{
 
     display(){
 
-        if (!story.currEpisode)
+        if (!story || !story.currEpisode)
         {
             document.getElementById("exit_menu_button").style.display = "none";
         }else
@@ -1039,13 +1046,7 @@ function bootstrapStory(){
                             "(Sullivan: If I remmember correctly these should be opened with the brfread tool, so i need to enter brfread gamm2.brf into the terminal)"
                         ],
                         [
-                            function(){
-                                radar = new Radar(10,2);
-                                messageManager = new MessageManager();
-                                currentMachine = new Machine();
-                                currentScreen = new InteractiveScreen();
-                                currentScreen.setState("OK");
-                            },
+                           
                             function() {
 
                                 console.log("setting up scene 1");
@@ -1203,10 +1204,30 @@ function bootstrapStory(){
                             new RadarEntity(70,90,"unknown","unknown")
                         ]
                     )
-                ], "Episode I : Introductions", ""
+                ], "Introductions", ""
+            ),
+            new Episode(
+                [
+                    new Scene(
+                        [
+                            new Condition("test1")
+                        ],
+                        [
+                            "PLACEHOLDER"
+                        ],
+                        [
+
+                        ],
+                        [
+
+                        ]
+                    )
+                ], "PLACEHOLDER", "65699"
             )
         ]
     )
+
+   
 }
 
 function endMovement(){
@@ -1250,13 +1271,27 @@ function exitMenu(){
     }
 }
 function loadEpisode(index){
-    var code = (index == 0)? "" : prompt("Please enter the episode code:", "");
-    if (story.loadEpisode(index,code)){
+    var code = (index == 0)? "episo1" : prompt("Please enter the episode code:", "");
+    var hash = code.hashCode();
+    if (story.loadEpisode(index,hash)){
         menu.hide();
         story.init();
         currentScreen.display();
     }
 }
+
+// found online
+String.prototype.hashCode = function() {
+    var hash = 0, i, chr;
+    if (this.length === 0) return hash;
+    for (i = 0; i < this.length; i++) {
+      chr   = this.charCodeAt(i);
+      hash  = ((hash << 5) - hash) + chr;
+      hash |= 0;
+    }
+    return hash;
+  };
+
 
 // Globals
 var radar;
@@ -1269,8 +1304,9 @@ var story;
 var menu;
 // Main
 function init(){
-    bootstrapStory();
     enterMenu();
+    bootstrapStory();
+    
 
 }
 
