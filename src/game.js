@@ -119,6 +119,7 @@ class Machine{
             }
             case("cd"):{
                 this.cd(args[1]);
+                return "";
             }
             case("cls"):{
                 var content = document.getElementById("display_content");
