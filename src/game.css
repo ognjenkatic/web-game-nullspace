@@ -93,7 +93,7 @@ img{
  
 }
 
-#message_box * {
+* {
   user-select: none;
 }
 
