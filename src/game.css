@@ -77,6 +77,24 @@ img{
 #hack_content{
 
 }
+
+#message_box_tooltip{
+  position: absolute;
+  color: #008000c2;
+  top:130px;
+  left:620px;
+  animation: mbt_opacity 2s infinite;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+
+@keyframes mbt_opacity {
+  0%   { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+
 #message_box{
   background-color: black;
   top:300px;
@@ -90,9 +108,12 @@ img{
   word-wrap: break-word;
   border-style: groove;
   border-width: 2px;
- 
+  
 }
 
+#message_box code{
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
 * {
   user-select: none;
 }

@@ -611,9 +611,7 @@ class RadarEntity{
 class Radar{
     constructor(resolution,lineFreq,entities = null){
 
-        if (radar){
-            radar.stopped = true;
-        }
+    
         this.alerted = false;
         this.alertRadarStroke = "rgba(200,0,0,0.8)";
         this.calmRadarStroke = "rgba(0,200,0,0.5)";
@@ -912,6 +910,7 @@ class Episode{
         this.currSceneIndex = 0;
         this.isComplete = false;
         this.currScene = this.scenes[this.currSceneIndex];
+        //this.init();
     }
 
     getConditions(){
@@ -920,6 +919,9 @@ class Episode{
 
     init(){
 
+        if(radar){
+            radar.bcdraw_clear();
+        }
         radar = new Radar(10,2);
         messageManager = new MessageManager();
         currentMachine = new Machine();
@@ -995,19 +997,28 @@ class MessageManager{
     printMessage(message,speed){
         this.printingMessage = true;
         var mb = document.getElementById("message_box");
-    
+        
+
         if (mb == null){
 
             mb = document.createElement("div");
             mb.id = "message_box";
     
+            var mbt = document.createElement("div");
+            mbt.innerHTML = "{click}";
+            mbt.id = "message_box_tooltip";
+
+            mb.appendChild(mbt);
+
             mb.addEventListener("click", this.progressChat);
             mb.className ="placed";
     
             this.scr2.appendChild(mb);
         } else{
-            if(mb.firstChild)
-                mb.removeChild(mb.firstChild);
+            var cnod = mb.childNodes[1];
+
+            if(cnod)
+                mb.removeChild(cnod);
         }
     
         var cd = document.createElement("code");
@@ -1223,6 +1234,8 @@ function bootstrapStory(){
                                     function(){
                                         console.log("Hack failed");
                                     });
+                                // TO-DO when reloading level it doesnt wipe old 
+                                radar.bcdraw_clear();
                                 radar.drawEntities();
                             }
                         ],
