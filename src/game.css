@@ -90,7 +90,11 @@ img{
   word-wrap: break-word;
   border-style: groove;
   border-width: 2px;
-  
+ 
+}
+
+#message_box * {
+  user-select: none;
 }
 
 .droppy{

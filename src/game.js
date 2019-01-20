@@ -71,6 +71,16 @@ class Machine{
         this.programs.push(program);
     }
 
+    updateProgram(name,callback){
+        for(var i=0;i<this.programs.length;i++){
+            if(this.programs[i].name == name){
+                this.programs[i].callback = callback;
+            }
+        }
+
+        this.addProgram(new Program(name,"No description",callback));
+    }
+
     runProgram(name,args){
         switch(name){
             case(""):{
@@ -599,7 +609,7 @@ class RadarEntity{
 }
 
 class Radar{
-    constructor(resolution,lineFreq){
+    constructor(resolution,lineFreq,entities = null){
 
         if (radar){
             radar.stopped = true;
@@ -609,10 +619,12 @@ class Radar{
         this.calmRadarStroke = "rgba(0,200,0,0.5)";
         this.stopped = false;
         this.currentRadarStroke = this.calmRadarStroke;
+        this.entities = entities;
 
         this.bcdraw_clear();
         this.fcdraw_grid(resolution);
         this.mcdraw_lines(lineFreq,0);
+
     }
 
     
@@ -725,7 +737,10 @@ class Radar{
     
             if (tag != null)
             {
-                ctx.fillStyle = "green";
+                if (type == "console2")
+                    ctx.fillStyle = "#01800270";
+                else
+                    ctx.fillStyle = "green";
                 ctx.font = (12*scale)+"px Impact";
                 ctx.textAlign = "stretch";
                 ctx.fillText(tag,x + (img.width*scale)+5,y+(img.height*scale));
@@ -752,14 +767,49 @@ class Radar{
         canvas.getContext("2d").drawImage(img, x, y);
     }
 
-    drawEntities(entities){
-        var cnv = document.getElementById("bg_canvas");
+    appendEntity(entity){
+        this.entities.push(entity);
+    }
 
+    prependEntity(entity){
+        this.entities.unshift(entity);
+    }
+
+    removeEntity(tag){
+        for(var i=0;i<this.entities.length;i++){
+            if(this.entities[i].tag == tag){
+                this.entities.splice(i,1);
+                return;
+            }
+        }
+    }
+    animateEntity(tag,tarx,tary){
+        for(var i=0;i<this.entities.length;i++){
+            if(this.entities[i].tag == tag){
+                if(this.entities[i].x != tarx || this.entities[i].y != tary){
+                    this.entities[i].x += Math.sign(tarx - this.entities[i].x);
+                    this.entities[i].y += Math.sign(tary - this.entities[i].y);
+                    window.requestAnimationFrame(
+                        function(){
+                            radar.bcdraw_clear();
+                            radar.animateEntity(tag,tarx,tary);
+                            radar.drawEntities();
+                        }
+                    );
+                }
+            }
+        }
+    }
+
+    drawEntities(entities = null){
+        this.bcdraw_clear();
+
+        var cnv = document.getElementById("bg_canvas");
         var cW = cnv.width;
         var cH = cnv.height;
 
-        for(var i=0;i<entities.length;i++){
-            var ent = entities[i];
+        for(var i=0;i<this.entities.length;i++){
+            var ent = this.entities[i];
             switch (ent.type) {
                 case "bound_wall":
                     this.bcdraw_entity(ent.x,ent.y,ent.width,ent.height,"#102f10",ent.tag,ent.type,ent.angle,ent.scale);
@@ -816,6 +866,11 @@ class Scene{
     }
 
     init(){
+
+        if (this.entities.length > 0)
+            radar.entities = this.entities;
+    
+
         for(var i=0;i<this.conditions.left;i++){
             this.conditions[i].completed  =false;
         }
@@ -825,8 +880,9 @@ class Scene{
             }
         messageManager.chat = this.conversation;
         messageManager.chatIndex = 0;
-        radar.drawEntities(this.entities);
         messageManager.progressChat();
+
+
     }
 }
 
@@ -929,6 +985,12 @@ class MessageManager{
         this.printSpeed = 20;
         this.chat = [];
         this.chatIndex=0;
+        this.forceComplete = false;
+        this.callback = null;
+    }
+
+    setCallback(callback){
+        this.callback = callback;
     }
     printMessage(message,speed){
         this.printingMessage = true;
@@ -952,6 +1014,7 @@ class MessageManager{
         
         mb.appendChild(cd);
     
+        
         intervalPrint(cd,message,speed,function(){
             messageManager.printingMessage = !messageManager.printingMessage;
         });
@@ -970,8 +1033,13 @@ class MessageManager{
                 messageManager.printMessage(messageManager.chat[messageManager.chatIndex++],messageManager.printSpeed);
             } else {
                 messageManager.closeMessages();
+                if (messageManager.callback){
+                    messageManager.callback();
+                    messageManager.callback = null;
+                }
             }
-        }
+        } else
+            messageManager.forceComplete = true;
     }
 }
 
@@ -1002,14 +1070,21 @@ class Menu{
 // Helper code
 function intervalPrint(target,message,interval,callback = null){
     if(target != null && message){
-        target.innerHTML += message[0];
-        if(message.length > 1){
-            setTimeout(() => {
-                intervalPrint(target,message.substring(1,message.length),interval,callback)
-            }, interval);
-        } else if (callback != null){
+        if (messageManager.forceComplete){
+            target.innerHTML += message;
             callback();
+            messageManager.forceComplete =false;
+        } else{
+            target.innerHTML += message[0];
+            if(message.length > 1){
+                setTimeout(() => {
+                    intervalPrint(target,message.substring(1,message.length),interval,callback)
+                }, interval);
+            } else if (callback != null){
+                callback();
+            }
         }
+
     }
 }
 
@@ -1085,7 +1160,7 @@ function bootstrapStory(){
                             "HIGH COMMAND: Soldiers are expendable, information is invaluable. make us proud!",
                             "(Sullivan: Well that sounded as cheerfull as can be...)",
                             "(Sullivan: The marines should be done setting up the remote access box by now. If so i should be able to access it using the tunnel command)",
-                            "(Sullivan: The command should be tunnel auxterm if i remember the address correctly)"
+                            "(Sullivan: The command should be tunnel T19 if i remember the address correctly)"
                         ],
                         [
                             function(){
@@ -1093,17 +1168,18 @@ function bootstrapStory(){
                                 currentMachine.addProgram(
                                     new Program("tunnel","creates a terminal to remote hardware",
                                     function(args){
-                                        if (args == "auxterm"){
+                                        if (args == "T19"){
                                             currentScreen.setInputBlocking(true);
                                             setTimeout(
                                                 function(){
+                                                    currentMachine.runProgram("cls");
                                                     currentScreen.appendCommandResult("Success: Connection Established!");
                                                     story.completeCondition("establish_remote_connection");
                                                     currentScreen.setInputBlocking(false);
                                                 },3000
                                             )
                                             
-                                            return "Attempting to connect to auxterm...";
+                                            return "Attempting to connect to T19...";
                                         } else{
                                             return "no such device available";
                                         }
@@ -1117,10 +1193,11 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("open_door")
+                            new Condition("hack_t19")
                         ],
                         [
-                            "Sgt Whitcomb: Hello",
+                            "<<CONNECTED TO T19>>",
+                            "Sgt Whitcomb: Hello?",
                             "Sgt Whitcomb: Hellooooo... tech guy?",
                             "Sgt Whitcomb: Don't know if you see me typing or not. I've connected everything following the instructions you provided.",
                             "Sgt Whitcomb: You should be hooked with the ships auxiliary terminal.",
@@ -1132,31 +1209,30 @@ function bootstrapStory(){
                             "Sgt Whitcomb: Agreed!",
                             "Sgt Whitcomb: We are trapped in this ships section though. Tried to pry open this door leading to life support room but its not going anywhere.",
                             "Can you try to access the control from your end?",
-                            "Sullivan: on it. give me a few..."
+                            "Sullivan: I'm on it. give me a few..."
 
                         ],
                         [
                             function(){
-                                currentMinigame = new TypingMinigame(1,words,20,10,
+                                console.log("Setting up scene 3");
+                                console.log("Setting up typing minigame");
+                                currentMinigame = new TypingMinigame(1,words,2,10,
                                     function(){
-                                        story.completeCondition("open_door");
+                                        story.completeCondition("hack_t19");
                                     },
                                     function(){
                                         console.log("Hack failed");
-                                    })
-                            },
-                            function(){
-                                console.log("Oxyoxy...");
-                                radar.bcdraw_clear();
+                                    });
+                                radar.drawEntities();
                             }
                         ],
                         [
                             new RadarEntity(0,30,"up_wall_full",null),
                             new RadarEntity(90,90,"bound_wall",null,0,1,200,400),
                             new RadarEntity(30,0,"left_wall_full",null),
+                            new RadarEntity(35,32,"console2","Bulkhead Termina (T19)",0,1.5),
+                            new RadarEntity(250,37,"bulkhead_closed","Bulkhead",0,2.5),
                             new RadarEntity(35,55,"sargeant","Sgt Whitcomb",0,1.5),
-                            new RadarEntity(35,32,"console2","Terminal",0,1.5),
-                            new RadarEntity(180,37,"bulkhead_closed","Bulkhead",0,2.5),
                         ]
                     ),
                     new Scene(
@@ -1164,46 +1240,208 @@ function bootstrapStory(){
                             new Condition("door_reached")
                         ],
                         [
-                            "Sgt Whitcomb: Im going there now..."
-
+                            "Sgt Whitcomb: Alright, were through, moving on to the life support systems room.",
                         ],
                         [
                             function(){
-                                console.log("Oxyoxy...");
-                                radar.bcdraw_clear();
+                                console.log("Setting up scene 4");
+                                setTimeout(
+                                    function(){
+                                        story.completeCondition("door_reached")
+                                    }, 6500
+                                );
+                            },
+                            function(){
+                                console.log("Clearing radar entries");
+                                radar.removeEntity("Bulkhead");
+                                radar.prependEntity(
+                                    new RadarEntity(250,37,"bulkhead_open",null,0,2.5)
+                                );
+                                radar.prependEntity(
+                                    new RadarEntity(405,32,"console2","Air Terminal (T14)",0,1.5),
+                                )
+                                radar.prependEntity(
+                                    new RadarEntity(290,110,"console2","Turret Terminal (T13)",270,1.5),
+                                )
+                                radar.drawEntities();
+                                radar.animateEntity("Sgt Whitcomb",405,55);
                             }
                         ],
                         [
-                            new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(90,90,"down_wall_full",null),
-                            new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(35,55,"sargeant","Sgt Whitcomb",0,1.5),
-                            new RadarEntity(35,32,"console2","Terminal",0,1.5),
-                            new RadarEntity(180,37,"bulkhead_open",null,0,2.5),
+                            
                         ]
                     ),
                     new Scene(
                         [
-                            new Condition("escape")
+                            new Condition("reset_system")
                         ],
                         [
-                            "Sgt Whitcomb: What is that????"
+                            "<<CONNECTED TO T14>>",
+                            "Sgt Whitcomb: ... this one is on the network as well.",
+                            "Sullivan: Excellent work sarge. Whats the status?",
+                            "Sgt Whitcomb: Well, it aint a pretty site but nothing is damaged as far as I can see.",
+                            "Sullivan: Whats the status of the life support systems?",
+                            "Sgt Whitcomb: Both air conditioning and onboard temperature systems are not operational. Everything is flashing red.",
+                            "Sullivan: Is there anything on the diagnostics screen? Any specific error message?",
+                            "Sgt Whitcomb: Well, temp system has this:",
+                            "AIR CONDITIONING SYSTEM OFFLINE; COIL TEMPERATURE CRITICAL; EXITING INSTANCE CALLED; DETERMINING AIR CONDITIONING STATUS...",
+                            "Sullivan: Its just a failsafe shutdown. Whats going on with air systems?",
+                            "Sgt Whitcomb: It has some blue screen with a bunch of numbers. Want me to read them to you?",
+                            "Sullivan: Don't be silly. No need for that. It probably failed on switching from main power to battery backup.",
+                            "Sullivan: Listen carefully now, write it down if you have to. I need you to disconnect that machine from the power source completely.",
+                            "Sullivan: Find the red button labeled reset somewhere on the control board. Hit that button aproximatly ten times. Connect it back to power and turn it on.",
+                            "Sgt Whitcomb: Oh man, the power connection is on the back, we have to move the whole goddamn thing to access it.",
+                            "Sullivan: Get to it then. Let me know when you're done",
+                            "(Sullivan: nothing to do but sit back and wait now...)"
 
                         ],
                         [
                             function(){
-                                console.log("Oxyoxy...");
-                                radar.bcdraw_clear();
+                                
+                                currentMachine.runProgram("cls");
+                                messageManager.setCallback(
+                                    function(){
+                                        
+                                        setTimeout(()=>{
+                                            story.completeCondition("reset_system");
+                                        },8000);
+                                        radar.animateEntity("Sgt Whitcomb", 405,85);
+                                        radar.animateEntity("Air Terminal (T14)", 405,62);
+                                        setTimeout(() => {
+                                            radar.animateEntity("Sgt Whitcomb", 390,85);
+                                        }, (1000));
+                                        setTimeout(() => {
+                                            radar.animateEntity("Sgt Whitcomb", 390,32);
+                                        }, (2000));
+                                        setTimeout(() => {
+                                            radar.animateEntity("Sgt Whitcomb", 390,85);
+                                        }, (5000));
+                                        setTimeout(() => {
+                                            radar.animateEntity("Sgt Whitcomb", 405,85);
+                                        }, (6000));
+                                        setTimeout(() => {
+                                            radar.animateEntity("Air Terminal (T14)", 405,32);
+                                        }, (7000));
+                                        setTimeout(() => {
+                                            radar.animateEntity("Sgt Whitcomb",405,55);
+                                        }, (7000));
+                                        console.log("moving on");
+                                    })
+                                
+                                
                             }
                         ],
                         [
-                            new RadarEntity(0,30,"up_wall_full",null),
-                            new RadarEntity(150,150,"down_wall_full",null),
-                            new RadarEntity(30,0,"left_wall_full",null),
-                            new RadarEntity(200,50,"marine","Sgt Black"),
-                            new RadarEntity(70,90,"unknown","unknown")
+                           
                         ]
-                    )
+                    ),
+                    new Scene(
+                        [
+                            new Condition("connect_to_console")
+                        ],
+                        [
+                            "Sgt Whitcomb: OK, we managed. But it's still not booting up, it's stuck on some sort of recovery screen.",
+                            "Sullivan: You did your part. The console is on the network now and i can take over.",
+                            "(Sullivan: Right. The schematics show this terminal as named T14, so i should use the tunnel command again to connect to it.)"
+
+                        ],
+                        [
+                            function(){
+                                
+                                currentMachine.updateProgram(
+                                    "tunnel",
+                                    function(args){
+                                        if (args == "T14"){
+                                            currentScreen.setInputBlocking(true);
+                                            setTimeout(
+                                                function(){
+                                                    currentMachine.runProgram("cls");
+                                                    currentScreen.appendCommandResult("Success: Connection Established!");
+                                                    currentScreen.appendCommandResult("Warning: System in recovery mode!");
+                                                    currentScreen.appendCommandResult("Warning: Unable to restore point, using defaults!");
+                                                    currentScreen.appendCommandResult("Warning: Resources partially unavailable!");
+                                                    currentScreen.appendCommandResult("Error: No recovery instructions present! Error code 5003.");
+                                                    story.completeCondition("connect_to_console");
+                                                    currentScreen.setInputBlocking(false);
+                                                },3000
+                                            )
+                                            
+                                            return "Attempting to connect to T14...";
+                                        } else{
+                                            return "no such device available";
+                                        }
+                                    }); 
+                            }
+                        ],
+                        [
+                            
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("hack_t19")
+                        ],
+                        [
+                            "(Sullivan: It seems the system is having problems recovering...)",
+                            "(Sullivan: Thankfully that error code indicates theres a problem with one of the auxiliary systems.)",
+                            "(Sullivan: As those systems are not critical i can hack to code to bypass them entirely.)"
+
+                        ],
+                        [
+                            function(){
+                                currentMinigame = new TypingMinigame(1,words,20,10,
+                                    function(){
+                                        story.completeCondition("hack_t19");
+                                    },
+                                    function(){
+                                        console.log("Hack failed");
+                                    });
+                            }
+                        ],
+                        [
+                            
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("wait_for_air_systems")
+                        ],
+                        [
+                            "Sgt Whitcomb: OK Boss i see you did your thing. Our sensors are picking up oxygen.",
+                            "Sgt Whitcomb: The temperature is however, still showing too low.",
+                            "Sullivan: Just go and reset the temperature console. It should automatically start up once it sees the air system is up and running.",
+                            "(Sullivan: once again...nothing for me to do.)"
+
+                        ],
+                        [
+                            function(){
+                                setTimeout(
+                                    function(){
+                                        story.completeCondition("wait_for_air_systems");
+                                    }, 5000);
+                            }
+                        ],
+                        [
+                            
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("unknown")
+                        ],
+                        [
+                            "Sgt Whitcomb: Yeah, i did a reset and now it's asking for some configuration stuff.",
+                            "Sullivan: Hm...let me connect and take a look.",
+                            "<<END OF DEMO>>"
+
+                        ],
+                        [
+                            
+                        ],
+                        [
+                            
+                        ]
+                    ),
                 ], "Introductions", ""
             ),
             new Episode(
