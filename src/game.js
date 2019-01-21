@@ -1119,7 +1119,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    
+                    /*   
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -1201,7 +1201,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),
+                    ),*/
                     new Scene(
                         [
                             new Condition("hack_t19")
@@ -1225,6 +1225,23 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentMachine.addProgram(
+                                    new Program(
+                                        "arp", "Recover the arp table",
+                                        function(){
+                                            return "Interface: 169.254.80.80 --- 0x5\n"+
+                                              "Internet Address      Network ID            Type\n"+
+                                              "169.254.255.255       ff-ff-ff-ff-ff-ff     static\n"+ 
+                                              "224.0.0.7             01-00-5e-00-00-07     static\n"+    
+                                              "224.0.0.22            01-00-5e-00-00-16     static\n"+    
+                                              "224.0.0.251           01-00-5e-00-00-fb     static\n"+    
+                                              "224.0.0.252           01-00-5e-00-00-fc     static\n"+    
+                                              "239.0.0.250           01-00-5e-00-00-fa     static\n"+    
+                                              "239.255.255.250       01-00-5e-7f-ff-fa     static\n";
+                                        }
+
+                                    )
+                                )
                                 console.log("Setting up scene 3");
                                 console.log("Setting up typing minigame");
                                 currentMinigame = new TypingMinigame(1,words,2,10,
@@ -1464,7 +1481,8 @@ function bootstrapStory(){
                             new Condition("test1")
                         ],
                         [
-                            "PLACEHOLDER"
+                            "Taljo: Ovo nam je bila bas dobra ideja!",
+                            "Kina: Da!"
                         ],
                         [
 
