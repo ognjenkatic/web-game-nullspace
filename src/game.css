@@ -119,6 +119,7 @@ img{
 }
 
 .droppy{
+  color:rgb(0, 41, 0);
   position: absolute;
   font-size: 25px;
   font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
@@ -252,6 +253,26 @@ input:focus {
   left: 10px;
 }
 
+#HUD_speed_bar {
+  position: absolute;
+  height:10px;
+  width:0px;
+  top:70px;
+  left: 10px;
+  background-color:purple;
+}
+#HUD_speed_bar::before{
+  content: attr(data-content);
+  width: 676px;
+  color:white;
+  position: absolute;
+  top:-10px;
+  text-align: center;
+  border:solid 1px;
+  border-color:white;
+  opacity:0.5;
+}
+
 #HUD_misses_bar{
   position: absolute;
   height:10px;
@@ -262,7 +283,7 @@ input:focus {
 }
 
 #HUD_misses_bar::before{
-  content: "Countermeasures progress";
+  content: attr(data-content);
   width: 676px;
   color:white;
   position: absolute;
@@ -283,7 +304,7 @@ input:focus {
 }
 
 #HUD_progress_bar::before{
-  content: "Intrusion progress";
+  content: attr(data-content);
   width: 676px;
   color:white;
   position: absolute;

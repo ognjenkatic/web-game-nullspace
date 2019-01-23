@@ -128,7 +128,7 @@ class Machine{
                           "\tInterrupt:21 Base address:0xe000\n"
             }
             case("cd"):{
-                this.cd(args[1]);
+                this.cd(args[0]);
                 return "";
             }
             case("cls"):{
@@ -288,7 +288,9 @@ class TypingMinigame{
         this.streakCount = 0;
         this.successCallback = successCallback;
         this.failCallback = failCallback;
-        
+        this.hackingSpeed = 0;
+        this.lastHitTime = 0;
+        this.gameStartTime = 0;
     }
 
 
@@ -305,13 +307,16 @@ class TypingMinigame{
         var hpc = document.createElement("div");
         var hpb = document.createElement("div");
         var heb = document.createElement("div");
+        var spd = document.createElement("div");
 
         hpc.id = "HUD_progress_container";
         hpb.id = "HUD_progress_bar";
         heb.id = "HUD_misses_bar";
+        spd.id = "HUD_speed_bar";
 
         hpc.appendChild(hpb);
         hpc.appendChild(heb);
+        hpc.appendChild(spd);
 
         var HUD = document.getElementById("HUD");
 
@@ -320,29 +325,33 @@ class TypingMinigame{
 
     updateProgressHUD(){
         var hpb = document.getElementById("HUD_progress_bar");
-        var wdt = (this.currentHits / this.targetHits)*100;
+        var spd = document.getElementById("HUD_speed_bar");
 
-        hpb.style.width = wdt+"%";
-    }
-
-    updateMissesHUD(){
         var heb = document.getElementById("HUD_misses_bar");
         var mss = (this.currentMisses / this.maxMisses)*100;
+
+        var wdt = (this.currentHits / this.targetHits)*100;
+        var speed = 60*this.currentHits / ((Date.now() - this.gameStartTime)/1000);
         if (heb){
             heb.style.width = mss+"%";
+            heb.setAttribute("data-content","Countermeasures "+Math.round(mss)+"% deployed");
         }
+        if (spd){
+            spd.style.width = (speed /60)*100 +"%";
+            spd.setAttribute("data-content",Math.round(speed)+" instructions per minute");
+            spd.style.backgroundColor = "rgb("+154*(Math.round(speed)/60)+", 18,179)";
+        }
+        if (hpb){
+            hpb.setAttribute("data-content","Exploit "+Math.round(wdt)+"% complete");
+            hpb.style.width = wdt+"%";
+        }
+        
+        
+        
         
     }
 
-    drawCountHud(){
-        var HUD = document.getElementById("HUD");
-        var HUDHit = document.createElement("div");
-        var HUDMiss = document.createElement("div");
-        HUDHit.id = "HUD_type_hit";
-        HUDMiss.id = "HUD_type_miss";
-        HUD.appendChild(HUDHit);
-        HUD.appendChild(HUDMiss);
-    }
+
 
     destroyHUD(){
 
@@ -352,12 +361,7 @@ class TypingMinigame{
         }
     }
 
-    updateCountHUD(){
-        var hc = document.getElementById("HUD_type_hit");
-        if (hc){
-            hc.innerHTML = this.currentHits;
-        }
-    }
+
 
     hasPlayerWon(){
         return (this.currentMisses < this.maxMisses && this.targetHits <= this.currentHits)
@@ -385,6 +389,18 @@ class TypingMinigame{
     }
 
     triggerSuccess(){
+        var content = document.getElementById("display_content");
+        var hc = document.getElementById("hack_content");
+        if (hc){
+            var mss = (this.currentMisses / this.maxMisses)*100;
+            var speed = 60*this.currentHits / ((Date.now() - this.gameStartTime)/1000);
+            var lic = document.createElement("li");
+            var pr = document.createElement("pre");
+            pr.innerHTML += "\n\nExploitation successfull\nCountermeasures stopped at "+Math.round(mss)+"%\nCoded at "+Math.round(speed)+" instructions per minute\n\n";
+            lic.appendChild(pr);
+            content.appendChild(lic);
+            hc.id = "hack_content_old";
+        }
         this.successCallback();
     }
 
@@ -392,6 +408,11 @@ class TypingMinigame{
         this.displayedElements.splice(0,this.displayedElements.length);
         this.failCallback();
         currentScreen.setState("OK");
+        var hc = document.getElementById("hack_content");
+        if (hc){
+            hc.innerHTML += "\n\nError: 0x6e6572640a detected!\nExiting environment\n\n"
+            hc.id = "hack_content_old";
+        }
         console.log("GAME OVER MAN");
     }
 
@@ -418,7 +439,6 @@ class TypingMinigame{
                 this.animateFailure();
                 this.currentMisses++;
                 this.streakCount = 0;
-                this.updateMissesHUD();
                 return;
             }
         }
@@ -432,8 +452,9 @@ class TypingMinigame{
                 this.displayedElements.splice(i,1);
                 this.currentHits++;
                 this.streakCount++;
-
-                this.updateProgressHUD();
+                this.lastHitTime = Date.now();
+                this.hackingSpeed = this.currentHits / (Date.now() - this.gameStartTime);
+                
                 return true;
             }
         }
@@ -466,7 +487,7 @@ class TypingMinigame{
             return;
         }
         var fs =parseInt(window.getComputedStyle(elly).getPropertyValue("font-size"));
-        if (fs > 80){
+        if (fs > 120){
             elly.remove();
         }else{
             fs+=1;
@@ -485,6 +506,7 @@ class TypingMinigame{
         hud.showHUD();
         this.drawProgressHUD();
         this.refresh();
+        this.gameStartTime = Date.now();
     }
 
     stop(){
@@ -494,6 +516,7 @@ class TypingMinigame{
     }
 
     refresh(){
+        this.updateProgressHUD();
         if (this.currentHits >= this.targetHits){
             stop();
             this.triggerSuccess();
@@ -601,7 +624,7 @@ class InteractiveScreen{
         }
 
         if (currentMinigame.validateInput(input.value)){
-            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*3,20);
+            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*4,40);
             input.value = "";
 
             if (currentMinigame.targetHits<=currentMinigame.currentHits) {
@@ -678,7 +701,7 @@ class InteractiveScreen{
 
         if(cmnd == "hack"){
             currentScreen.setState("hacking");
-            return "hk_framework -m interacive < ";
+            return "Starting RFE exploitation framework!\n\nSpawning new interactive shell...\nAccessing proxy...\nWaiting for instructions...\n\n";
         } else
         {
             return currentMachine.runProgram(cmnd,args);
@@ -1355,7 +1378,7 @@ function bootstrapStory(){
                                 )
                                 console.log("Setting up scene 3");
                                 console.log("Setting up typing minigame");
-                                currentMinigame = new TypingMinigame(1,words,200,100,
+                                currentMinigame = new TypingMinigame(1,words,10,10,
                                     function(){
                                         story.completeCondition("hack_t19");
                                     },
@@ -1660,6 +1683,12 @@ function loadEpisode(index){
     }
 }
 
+function playSound(){
+    audio.currentTime=0;
+    audio.playbackRate = 8;
+    audio.play();
+}
+
 // found online
 String.prototype.hashCode = function() {
     var hash = 0, i, chr;
@@ -1683,6 +1712,7 @@ var currentMinigame;
 var words = ["unknown","continue","buffer","overflow","cross","site","reflection","middle","man","certificate","foreach","interface","dissasemble","working","set","namespace","hack","mysql","injection"];
 var story;
 var menu;
+//var audio = new Audio('type.ogg');
 // Main
 function init(){
     enterMenu();
