@@ -250,6 +250,27 @@ class Network{
         return this.machines;
     }
 }
+
+class HUD{
+    constructor(){
+        this.HUD = null;
+    }
+
+    drawHUD(){
+        var scr2 = document.getElementById("screen2");
+        this.HUD = document.createElement("div");
+        this.HUD.id = "HUD";
+        scr2.appendChild(this.HUD);
+    }
+
+    showHUD(){
+        this.HUD.style.display = "block";
+    }
+
+    hideHUD(){
+        this.HUD.style.display = "none";
+    }
+}
 class TypingMinigame{
     constructor(speed,dictionary,targetHits,maxMisses,successCallback,failCallback){
         this.speed = speed;
@@ -267,7 +288,75 @@ class TypingMinigame{
         this.streakCount = 0;
         this.successCallback = successCallback;
         this.failCallback = failCallback;
+        
+    }
 
+
+    reset(){
+        this.hackIndex = 0;
+        this.hack = intervalPrint.toString();
+        this.cmplt = false;
+        this.currentHits = 0;
+        this.currentMisses = 0;
+        this.percent =0;
+        this.streakCount=0;
+    }
+    drawProgressHUD(){
+        var hpc = document.createElement("div");
+        var hpb = document.createElement("div");
+        var heb = document.createElement("div");
+
+        hpc.id = "HUD_progress_container";
+        hpb.id = "HUD_progress_bar";
+        heb.id = "HUD_misses_bar";
+
+        hpc.appendChild(hpb);
+        hpc.appendChild(heb);
+
+        var HUD = document.getElementById("HUD");
+
+        HUD.appendChild(hpc);
+    }
+
+    updateProgressHUD(){
+        var hpb = document.getElementById("HUD_progress_bar");
+        var wdt = (this.currentHits / this.targetHits)*100;
+
+        hpb.style.width = wdt+"%";
+    }
+
+    updateMissesHUD(){
+        var heb = document.getElementById("HUD_misses_bar");
+        var mss = (this.currentMisses / this.maxMisses)*100;
+        if (heb){
+            heb.style.width = mss+"%";
+        }
+        
+    }
+
+    drawCountHud(){
+        var HUD = document.getElementById("HUD");
+        var HUDHit = document.createElement("div");
+        var HUDMiss = document.createElement("div");
+        HUDHit.id = "HUD_type_hit";
+        HUDMiss.id = "HUD_type_miss";
+        HUD.appendChild(HUDHit);
+        HUD.appendChild(HUDMiss);
+    }
+
+    destroyHUD(){
+
+        var hpc = document.getElementById("HUD_progress_container");
+        if (hpc){
+            hpc.remove();
+        }
+    }
+
+    updateCountHUD(){
+        var hc = document.getElementById("HUD_type_hit");
+        if (hc){
+            hc.innerHTML = this.currentHits;
+        }
     }
 
     hasPlayerWon(){
@@ -300,12 +389,18 @@ class TypingMinigame{
     }
 
     triggerFailure(){
+        this.displayedElements.splice(0,this.displayedElements.length);
         this.failCallback();
+        currentScreen.setState("OK");
+        console.log("GAME OVER MAN");
     }
 
     fall(elly){
         var tpar = parseInt(elly.style.top.replace("px",""))
-        if(tpar <= 768){
+        if(!this.isRunning){
+            elly.remove();
+        }
+        else if(tpar <= 768){
             
             elly.style.top = (tpar+=currentMinigame.speed)+"px";
             window.requestAnimationFrame(function(){currentMinigame.fall(elly);});
@@ -323,6 +418,7 @@ class TypingMinigame{
                 this.animateFailure();
                 this.currentMisses++;
                 this.streakCount = 0;
+                this.updateMissesHUD();
                 return;
             }
         }
@@ -331,12 +427,13 @@ class TypingMinigame{
     validateInput(input){
         for(var i=0;i<this.displayedElements.length;i++){
             if(this.displayedElements[i].innerHTML == input){
+                this.displayedElements[i].style.opacity = 1;
                 this.animateSuccess(this.displayedElements[i]);
                 this.displayedElements.splice(i,1);
-                
-
                 this.currentHits++;
                 this.streakCount++;
+
+                this.updateProgressHUD();
                 return true;
             }
         }
@@ -349,7 +446,7 @@ class TypingMinigame{
         }
         if (this.percent < 100){
             var bk = document.getElementById("screen1");
-            bk.style.background = "linear-gradient(to bottom, red 0%,red "+this.percent+"%,orange 0%)";
+            //bk.style.background = "linear-gradient(to bottom, red 0%,red "+this.percent+"%,orange 0%)";
             this.percent+=10;
             window.requestAnimationFrame(
                 function(){
@@ -359,7 +456,7 @@ class TypingMinigame{
         }else{
             this.percent = 0;
             var bk = document.getElementById("screen1");
-            bk.style.background = "orange";
+            //bk.style.background = "orange";
         }
         
 
@@ -369,11 +466,12 @@ class TypingMinigame{
             return;
         }
         var fs =parseInt(window.getComputedStyle(elly).getPropertyValue("font-size"));
-        if (fs > 60){
+        if (fs > 80){
             elly.remove();
         }else{
-            fs+=2;
+            fs+=1;
             elly.style.fontSize = fs+"px";
+            elly.style.opacity-=0.01;
             window.requestAnimationFrame(
                 function(){
                     currentMinigame.animateSuccess(elly);
@@ -384,11 +482,15 @@ class TypingMinigame{
 
     start(){
         this.isRunning = true;
+        hud.showHUD();
+        this.drawProgressHUD();
         this.refresh();
     }
 
     stop(){
         this.isRunning = false;
+        this.destroyHUD();
+        hud.hideHUD();
     }
 
     refresh(){
@@ -449,13 +551,16 @@ class InteractiveScreen{
 
         if(state == "hacking" && currentMinigame){
             currentMachine.state = "hacking";
+            currentMinigame.reset();
             var cln = input.cloneNode();
             cln.addEventListener("keyup",this.fetchHackInput);
             parent.replaceChild(cln,input);
             cln.focus();
             cln.value = "";
             currentMinigame.start();
-            document.getElementById("screen1").style.backgroundColor = "orange";
+            document.getElementById("screen1").style.backgroundColor = "rgb(40,0,0)";
+            document.getElementById("display_content").style.opacity = "0.5";
+            document.getElementById("prompt").style.opacity = "0.5";
         }
         else if (state == "OK"){
             if(currentMinigame){
@@ -466,6 +571,8 @@ class InteractiveScreen{
             cln.addEventListener("keyup",this.fetchCommandInput);
             parent.replaceChild(cln,input);
             document.getElementById("screen1").style.backgroundColor = "black";
+            document.getElementById("display_content").style.opacity = "1";
+            document.getElementById("prompt").style.opacity = "1";
             cln.focus();
         }
     }
@@ -571,6 +678,7 @@ class InteractiveScreen{
 
         if(cmnd == "hack"){
             currentScreen.setState("hacking");
+            return "hk_framework -m interacive < ";
         } else
         {
             return currentMachine.runProgram(cmnd,args);
@@ -626,6 +734,7 @@ class Radar{
     }
 
     
+
     fcdraw_grid(resolution){
 
         var cnv = document.getElementById("fg_canvas");
@@ -747,7 +856,7 @@ class Radar{
         }
     }
 
-
+    
     bcdraw_clear(){
         var cnv = document.getElementById("bg_canvas");
         var ctx = cnv.getContext('2d');
@@ -923,6 +1032,8 @@ class Episode{
             radar.bcdraw_clear();
         }
         radar = new Radar(10,2);
+        hud = new HUD();
+        hud.drawHUD();
         messageManager = new MessageManager();
         currentMachine = new Machine();
         currentScreen = new InteractiveScreen();
@@ -1244,7 +1355,7 @@ function bootstrapStory(){
                                 )
                                 console.log("Setting up scene 3");
                                 console.log("Setting up typing minigame");
-                                currentMinigame = new TypingMinigame(1,words,2,10,
+                                currentMinigame = new TypingMinigame(1,words,200,100,
                                     function(){
                                         story.completeCondition("hack_t19");
                                     },
@@ -1563,6 +1674,7 @@ String.prototype.hashCode = function() {
 
 
 // Globals
+var hud;
 var radar;
 var messageManager;
 var currentMachine;
