@@ -102,6 +102,9 @@ class Machine{
                 return retval;
                 
             }
+            case("logread"):{
+                return this.logread(args[0]);
+            }
             case("ls"):{
                 return this.ls();
             }
@@ -173,6 +176,19 @@ class Machine{
             }
         }
     }
+
+    logread(name){
+        var logEntry = this.cwd.getChildEntry(name);
+        if (logEntry && logEntry.name.endsWith(".log")){
+            messageManager.chat = logEntry.content;
+            messageManager.chatIndex = 0;
+            messageManager.progressChat();
+
+            return "Displaying log."
+        }
+        
+        return "File not found.";
+    }
     
     pwd(){
         return this.cwd.getPath();
@@ -205,8 +221,8 @@ class Machine{
         return files;
     }
 
-    touch(name){
-        var newFile = new FSFile(name,"755","Mission briefing",this.fileSystem.cwd);
+    touch(name,content = ""){
+        var newFile = new FSFile(name,"755",content,this.fileSystem.cwd);
         this.cwd.childEntries.push(newFile);
     }
     promptInfo(){
@@ -1359,6 +1375,10 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentMachine.touch("sully_064.log",
+                                [
+                                    "(Sullivan: Brush up on MK41 carriers for mission"
+                                ]);
                                 currentMachine.addProgram(
                                     new Program(
                                         "arp", "Recover the arp table",
