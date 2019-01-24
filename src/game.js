@@ -55,16 +55,17 @@ class FS{
 
 class Machine{
 
-    constructor(){
+    constructor(ip="0.0.0.0",mac="00:00:00:00:00"){
         this.state = "OK";
         this.fileSystem = new FS();
         this.currentUser = "root";
-        this.ip = "192.168.0.5";
+        this.ip = ip;
         this.cwd = this.fileSystem.rootDir.getChildEntry("#home");
+        this.mac = mac;
         this.services = [];
         this.programs = [];
-
-
+        this.commandStack = [];
+        this.commandStackIndex = 0;
     }
 
     addProgram(program){
@@ -81,7 +82,32 @@ class Machine{
         this.addProgram(new Program(name,"No description",callback));
     }
 
-    runProgram(name,args){
+    pushHistory(command){
+        this.commandStack.push(command);
+        this.commandStackIndex = this.commandStack.length;
+    }
+
+    history(command,direction){
+        if (this.commandStack.length == 0)
+            return command;
+        if (direction == "up") {
+            if ( this.commandStackIndex > 0){
+                this.commandStackIndex--;
+            }
+
+        }
+        else if (direction == "down") {
+            if (this.commandStackIndex < this.commandStack.length-1){
+                this.commandStackIndex++;
+            } else {
+                return "";
+            }
+        }
+        return this.commandStack[this.commandStackIndex];
+    }
+
+    runProgram(name,args=""){
+        console.log("gm");
         switch(name){
             case(""):{
                 return " ";
@@ -104,6 +130,9 @@ class Machine{
             }
             case("logread"):{
                 return this.logread(args[0]);
+            }
+            case("netscan"):{
+                return this.netscan();
             }
             case("ls"):{
                 return this.ls();
@@ -177,6 +206,18 @@ class Machine{
         }
     }
 
+    netscan(){
+        var retval = "IP                 MAC\n"+
+                     "--------------------------------------\n";
+        var padding ="       ";
+
+        for(var i=0;i<network.machines.length;i++){
+            retval += network.machines[i].ip+padding+network.machines[i].mac+"\n";
+        }
+
+        return retval;
+    }
+
     logread(name){
         var logEntry = this.cwd.getChildEntry(name);
         if (logEntry && logEntry.name.endsWith(".log")){
@@ -225,6 +266,7 @@ class Machine{
         var newFile = new FSFile(name,"755",content,this.fileSystem.cwd);
         this.cwd.childEntries.push(newFile);
     }
+
     promptInfo(){
         return this.currentUser+"@"+this.ip+": ";
     }
@@ -256,9 +298,7 @@ class Service{
     }
 }
 class Network{
-    constructor(subnet,netmask,machines){
-        this.subnet = subnet;
-        this.netmask = netmask;
+    constructor(machines=[]){
         this.machines = machines;
     }
 
@@ -570,7 +610,14 @@ class InteractiveScreen{
     constructor(){
         this.scr1 = document.getElementById("screen1");
         this.clear();
+
+        
     
+    }
+
+    updatePromptInfo(){
+        var pinfo = document.getElementById("prompt_info");
+        pinfo.innerHTML = currentMachine.promptInfo();
     }
 
     setInputBlocking(block){
@@ -662,18 +709,26 @@ class InteractiveScreen{
     fetchCommandInput(event){
         event.preventDefault();
 
+        var input = document.getElementById("prompt_input");
+        var content = document.getElementById("display_content");
+
+        var input_val = input.value;
+
         if (event.keyCode == 27){
             currentScreen.hide();
             menu.display();
+        } else if (event.keyCode == 38){
+            input.value = currentMachine.history(input_val,"up");
+        } else if (event.keyCode == 40){
+            input.value = currentMachine.history(input_val,"down");
         }
         else if(event.keyCode === 13 )
         {
-            var input = document.getElementById("prompt_input");
-            var content = document.getElementById("display_content");
-
-            var input_val = input.value;
+            
 
             var result = currentScreen.processCommandInput(input_val);
+            if (input_val != "")
+                currentMachine.pushHistory(input_val);
 
             if (result != ""){
                 var newInputLine = document.createElement("li");
@@ -721,6 +776,7 @@ class InteractiveScreen{
         } else
         {
             return currentMachine.runProgram(cmnd,args);
+            
         }
     }
 
@@ -1077,7 +1133,6 @@ class Episode{
         currentMachine = new Machine();
         currentScreen = new InteractiveScreen();
         currentScreen.setState("OK");
-
         this.currScene.init();
         document.title = this.title;      
     }
@@ -1269,7 +1324,7 @@ function bootstrapStory(){
         [
             new Episode(
                 [
-                    /*   
+                    
                     new Scene(
                         [
                             new Condition("briefing_opened")
@@ -1285,6 +1340,14 @@ function bootstrapStory(){
                            
                             function() {
 
+                                connectToMachine(new Machine("192.168.0.12","AA:AA:AA:AA:AA"));
+                                network = new Network();
+                                network.machines =
+                                [
+                                    currentMachine,
+                                    new Machine("192.168.0.10","FF:FF:FF:FF:FF")
+                                ];
+                                
                                 console.log("setting up scene 1");
                                 console.log("setting up machine filesystem");
                                 currentMachine.touch("gamm2.brf");
@@ -1351,7 +1414,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),*/
+                    ),
                     new Scene(
                         [
                             new Condition("hack_t19")
@@ -1709,6 +1772,13 @@ function playSound(){
     audio.play();
 }
 
+function connectToMachine(machine){
+    currentMachine = machine;
+    if (currentScreen){
+        currentScreen.updatePromptInfo();
+    }
+}
+
 // found online
 String.prototype.hashCode = function() {
     var hash = 0, i, chr;
@@ -1732,6 +1802,7 @@ var currentMinigame;
 var words = ["unknown","continue","buffer","overflow","cross","site","reflection","middle","man","certificate","foreach","interface","dissasemble","working","set","namespace","hack","mysql","injection"];
 var story;
 var menu;
+var currentNetwork;
 //var audio = new Audio('type.ogg');
 // Main
 function init(){
