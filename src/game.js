@@ -16,9 +16,12 @@ class FSFile{
 
     getPath(){
         if(this.parentDir == null)
-            return "";
+            return "/";
         else
-            return this.parentDir.getPath()+"/"+this.name.replace("#","");
+        {
+            var retval = this.parentDir.getPath();
+            return (retval == "/")? retval+this.name.replace("#","") : retval+"/"+this.name.replace("#","");
+        }
     }
 
     addDefaultChildEntries(names){
@@ -136,13 +139,41 @@ class Machine{
                 return this.tunnel(args[0]);
             }
             case("netscan"):{
-                return this.netscan();
+                var result = this.netscan();
+                setTimeout(
+                    function(){
+                        currentScreen.appendCommandResult("Determining network properties...");
+                        currentScreen.appendCommandResult("Starting scan...");
+                    },1000
+                );
+                setTimeout(
+                    function(){
+                        var prgrs = getRndInteger(20,70);
+                        currentScreen.appendCommandResult("Scan "+prgrs+"% complete...");
+                    },3000
+                );
+                setTimeout(
+                    function(){
+                        var prgrs = getRndInteger(70,100);
+                        currentScreen.appendCommandResult("Scan "+prgrs+"% complete...");
+                        currentScreen.appendCommandResult("Scan 100% complete...");
+                        currentScreen.appendCommandResult("\n");
+                        currentScreen.appendCommandResult(result);
+                        currentScreen.appendCommandResult("\n");
+                        currentScreen.setInputBlocking(false);
+                    },5000
+                );
+                currentScreen.setInputBlocking(true);
+                return " ";
             }
             case("ls"):{
                 return this.ls();
             }
             case("pwd"):{
                 return this.pwd();
+            }
+            case("cat"):{
+                return this.cat(args[0]);
             }
             case("ifconfig"):{
                 return  "lo\tLink encap:Local Loopback\n"+
@@ -251,6 +282,7 @@ class Machine{
 
         if(retval != null)
             this.cwd = retval;
+        
     }
 
     cat(name){
@@ -270,8 +302,11 @@ class Machine{
     }
 
     ls(){
-        var files = "";
+        var files = " ";
         var i=0;
+
+        if(this.cwd.childEntries.length > 0)
+            files = "";
         for(i;i<this.cwd.childEntries.length;i++){
             files += this.cwd.childEntries[i].name.replace("#","")+"\n";
         }
@@ -279,13 +314,13 @@ class Machine{
         return files;
     }
 
-    touch(name,content = ""){
+    touch(name,content = "[binary]"){
         var newFile = new FSFile(name,"755",content,this.fileSystem.cwd);
         this.cwd.childEntries.push(newFile);
     }
 
     promptInfo(){
-        return this.currentUser+"@"+this.ip+": ";
+        return this.currentUser+"@"+this.ip+":"+this.cwd.getPath()+"$";
     }
 }
 
@@ -768,6 +803,7 @@ class InteractiveScreen{
                 }
                 currentScreen.scrollToEnd();
             }
+            currentScreen.updatePromptInfo();
             input.value = "";
             
         }
@@ -1370,7 +1406,7 @@ function bootstrapStory(){
                                 
                                 console.log("setting up scene 1");
                                 console.log("setting up machine filesystem");
-                                currentMachine.touch("gamm2.brf");
+                                currentMachine.touch("gamm2.brf","[binary]");
                                 console.log("setting up machine programs");
                                 currentMachine.addProgram(
                                     new Program("brfread","render the briefing.",
