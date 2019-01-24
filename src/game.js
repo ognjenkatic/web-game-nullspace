@@ -1679,41 +1679,310 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("unknown")
+                            new Condition("pat_own_back")
                         ],
                         [
-                            "Sgt Whitcomb: Yeah, i did a reset and now it's asking for some configuration stuff.",
-                            "Sullivan: Hm...let me connect and take a look.",
-                            "<<END OF DEMO>>"
-
+                            "Sullivan: Check your sensors now.",
+                            "Sgt Whitcomb: This is awesome! We can finally remove our helmets.",
+                            "Sgt Whitcomb: Feels good man. Great job!"
                         ],
                         [
-                            
+                            function(){
+                                messageManager.setCallback(
+                                    function(){
+                                        story.completeCondition("pat_own_back");
+                                    }
+                                )
+                            }
                         ],
                         [
                             
                         ]
                     ),
-                ], "Introductions", ""
+                ], "Catch your breath", ""
             ),
             new Episode(
                 [
                     new Scene(
                         [
-                            new Condition("test1")
+                            new Condition("read_convo"),
+                            new Condition("walk_over")
                         ],
                         [
-                            "Taljo: Ovo nam je bila bas dobra ideja!",
-                            "Kina: Da!"
+                            "Sgt Whitcomb: Hey bossman, we looked around the ship and everything seems to be running on auxiliary power.",
+                            "Sgt Whitcomb: Now that we have life support systems operational i believe it will drain the power in a matter of hours.",
+                            "Sgt Whitcomb: We should check what's going on with the generator.",
+                            "Sullivan: Agreed."
                         ],
                         [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        
 
                         ],
                         [
+                            "Sgt Whitcomb: The generator itself is completely black. I see no lights on it.",
+                            "Sgt Whitcomb: ...and i can't figure out where do you turn this on...",
+                            "Sullivan: That's because you can't simply turn it on with the flip of the switch. I'll connect to the terminal and initialize the start-up sequence."
+                   
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                          
 
+                        ],
+                        [
+                            "Sullivan: The generator seems in good shape. It's simply turned off. Might be that the system's safety measure shut it down.",
+                            "Sullivan: The power core is stable. I Will attempt to start it up, but  have to bypass the codes first.",
+                            "Sgt Whitcomb: Sure, do your thing.",
+                            "Sgt Whitcomb: Don't know if it's of any help, but there is a note here pinned next to the terminal",
+                            "Sgt Whitcomb: It goes 'To whom it may concern - i've left defails in the engineer's log'"
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                          
+
+                        ],
+                        [
+                            "Sullivan: OK, it's up and running.",
+                            "Sgt Whitcomb: I see a bunch of red lights here on the diagnostics panel.",
+                            "Sullivan: I'll run a detailed systems diagnostc to see what's going on."
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                          
+
+                        ],
+                        [
+                            "Sgt Whitcomb: Well, I can tell you are making progress. The lights are now showing yellow instead of red.",
+                            "Sullivan: Yellow?! It should be working...i don...oh wait...i know what's up.",
+                            "Sgt whitcomb: I thought you knew what you were doing?!",
+                            "Sullivan: Calm down, I got this. It's just that it's been a while."
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                          
+
+                        ],
+                        [
+                            "Sullivan: There we go. Are the lights green now?",
+                            "Sgt Whitcomb: They seem so.",
+                            "Sullivan: Then we're all set. The ship is stabilized and we can proceed with searching for clues.",
+                            "Sgt Whitcomb: Precisely. I really wasn't too eager to search for the unmarked vessel without having light covering all corners.",
+                            "Sgt Whitcomb: We better find the ship's bridge soon. This place is so eerie that half of my squad already smells of piss.",
+                            "Sgt Whitcomb: SQUAD, MOVE OUT! Blake, start mapping this place. I want to be able to find my way back to your mothers knickers.",
+                            "Pvt Blake: Sir, yes sir!"
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
                         ]
                     )
-                ], "PLACEHOLDER", "65699"
+                ], "Build more pylons", "65699"
+            ),
+            new Episode(
+                [
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                          
+
+                        ],
+                        [
+                            "Sgt Whitcomb: Sully, we made it to the entrance of the bridge.",
+                            "Sullivan: I suppose you'll find the captain's logs somewhere inside.",
+                            "Sgt Whitcomb: Yeah, that's the thing. We cannot pry open these doors.",
+                            "Sgt Whitcomb: But give me a few, I'll have one of mine try and open it with MDD.",
+                            "Sgt Whitcomb: Pvt. Johnson, go ahead, give it a try.",
+                            "Pvt. Johnson: Aye, sir!",
+                            "...",
+                            "...",
+                            "Pvt. Wyatt: Sir, do you smell the gunpowder?",
+                            "Sgt Whitcomb: Damnit, sulphur! Quickly, put on your helmets!",
+                            "Sgt Whutcomb: Sullivan! We triggered some safety protocol. Get us out of here!",
+                            "Sullivan: No need for panic, we have time untill the acid concentration is high enough to do harm.",
+                            "(Sullivan: If i remember correctly, when they pull the lever the board computer will request a code override before permanently shutting the vents.)",
+                            "Sullivan: There are four air vents we need to override. You will find them in the corners of the corridor.",
+                            "Sullivan: I need you to pull the levers. Then i will poverride the automatic vent closing from my end.",
+                            "Sullivan We have one chance at this, don't screw it up.",
+                            "Pvt Wyatt: On it!",
+                            "...",
+                            "Pvt Wyatt: Pulling the first one!",
+                            "...",
+                            "Pvt Wyatt: Second!",
+                            "...",
+                            "Pvt Wyatt: Another one going down...right about now!",
+                            "Pvt Wyatt: Pulling last one!"
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        ],
+                        [
+                            "Sullivan: That was close! Keep your helmets on. The air is probably too thin.",
+                            "Sgt Whitcomb: Let's proceed with caution from now on. I did not see that comming. I keep forgetting we know very little about this ship.",
+                            "Sullivan: Don't worry. I got your back.",
+                            "Sullivan: Let me try and open that door for you. It's probably safer if i try."
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        ],
+                        [
+                            "Sullivan: Done!",
+                            "Sgt Whitcomb: I'd thank you, but i'd rather not enter the bridge. There are dead bodies all over the place.",
+                            "Sullivan: It was expected. Otherwise, why would there be a ship floating dead in space. I was expecting bodies to show up at some point.",
+                            "Sgt Whitcomb: I guess you are right. But a man is never prepared for such a sight.",
+                            "Sullivan: Man up. Find the logs so we can get out of here.",
+                            "Sgt Whitcomb: Looking..."
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        ],
+                        [
+                            "Sgt Whitcomb: We found the captain's video log file. I cannot play it though, it seems scrambled...",
+                            "Sullivan: Probably encrypted. You'll hvae to find the captain among the dead and scan his retina to get access to the logs.",
+                            "Sgt. Whitcomb: First of all, there are so many dead bodies and i don't see an familiar navy emblems to tell which one is the captain.",
+                            "Sullivan: OK...calm down...",
+                            "Sgt Whitcomb: Wait, the captain's personal log seems accessible. I cannot make sense of this. Maybe if you take a look...",
+                            "Sullivan: Alright, let's see. I'll find a way to decrypt this video log. Just keep quiet! Let me think..."
+                              
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        ],
+                        [
+                            "(Sullivan: Finally...lets take a look at this...)",
+                            "CAPTAIN'S LOG: YEAR OF AWAKENING 2531.2113",
+                            "Cpt Hammet: This is captain Hammet of the N.S.U. Ramses speaking. We are dispatched on an escort mission to provide military support to the colony ship heading towards the asteroid belt A-482.",
+                            "Cpt Hammet: We were supposed to assist with setting up a mining operation at the edge of our solar system.",
+                            "Cpt Hammet: Everything was going according to plan until the first drilling machine started mining.",
+                            "Cpt Hammet: We were busy setting up the rest of the mining station. I wish we were more vigilant...",
+                            "Cpt Hammet: Just hours after the machine started digging through the hard surface of the asteroid a large explosion was felt comming from the mine shaft.",
+                            "Cpt Hammet: First, our comms went dark. We couldn't reach neither the mining personell nor the homebase.",
+                            "Cpt Hammet: In a matter of minutes, the asteroid collapsed in on itself. It crumpled like a cardboard box.",
+                            "Cpt Hammet: A very bright light started emitting from the place where a large rock stood just minutes ago.",
+                            "Cpt Hammet: And then the voices...not comming from radio comms, something different...Like the ship itself was speaking to us.",
+                            "Cpt Hammet: And it gets blurry from this point on...if i recall correctly, the whole ship got sucked into some sort of vortex.",
+                            "Cpt Hammet: I've asked around and talked with the crew. We have little memory what happened after. Untill now...",
+                            "Cpt Hammet: Looking at the rust on the hull, my crewmen...we all grew beards god damnit! I just don't....",
+                            "Cpt Hammet: ...It's like we were somewhere for over a year. We don't know where. We don't know when. Everything seems scratched by the claws of time",
+                            "Cpt Hammet: And it brings us here. To this moment. We don't know where we are. We have no memory of this place nor time...",
+                            "Cpt Hammet: Our galaxy map is showing everything as uncharted.",
+                            "(In background: Captain, quick! You better come and see this.)",
+                            "Cpt Hammet: What the...get this ship under control major!",
+                            "(In background: Captain, it's overloading the core!)",
+                            "Cpt Hammet: Officers, my quarters! Now!",
+                            "Cpt Hammet: Someone....help us, please..."
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("read_convo"),
+                        ],
+                        [
+                            "Sgt Whitcomb: We better leave this place while we're still breathing.",
+                            "Sullivan: Not so fast, we can't leave yet!",
+                            "Sgt Whitcomb: Haven't you seen enough?! Every minute we spend here on this ship we are risking the lives of my crew. My crew!",
+                            "Sullivan: We have a mission soldier! There are still too many uncertanties. We need to investigate further.",
+                            "Sgt Whitcomb: We didn't sign up for this...",
+                            "Sullivan: Stop your bitching! We have a trail to follow. Get to the captain's quarters. We might find some answers there.",
+                            "Sgt Whitcomb: Ugh...wait 'till i get my hands on you...",
+                            "Sullivan: Sargeant!",
+                            "Sgt Whitcomb: Yeah, yeah! Round up men, we need to go deeper into this rabbit hole."
+                        ],
+                        [
+                            //init
+                        ],
+                        [
+                            //radar
+                        ]
+                    ),
+
+                ], "Hello, operator?","0000"
             )
         ]
     )
