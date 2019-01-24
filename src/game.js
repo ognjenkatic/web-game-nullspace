@@ -740,7 +740,7 @@ class InteractiveScreen{
         }
 
         if (currentMinigame.validateInput(input.value)){
-            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*4,40);
+            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*6,40);
             input.value = "";
 
             if (currentMinigame.targetHits<=currentMinigame.currentHits) {
@@ -1381,15 +1381,19 @@ function bootstrapStory(){
                     
                     new Scene(
                         [
-                            new Condition("briefing_opened")
+                            new Condition("briefing_complete")
                         ],
                         [
-                            "(Sullivan: ...)",
-                            "(Sullivan: This starship coffee is horrible... and I've barely gotten any sleep)",
-                            "(Sullivan: Anyway, I should review the mission briefing once more before the start)",
-                            "(Sullivan: It should be in my home directory under the name gamm2.brf)",
-                            "(Sullivan: If I remmember correctly these should be opened with the brfread tool, so i need to enter brfread gamm2.brf into the terminal)"
-                        ],
+                            "HIGH COMMAND: Greetings mr. Sullivan, as you are most probably aware of by now, an unmarked abandoned space ship has been located at the edge of our solar system.",
+                            "HIGH COMMAND: Its origins are unknown, but technology bears resemblance to our own.",
+                            "HIGH COMMAND: We suspect it belongs to a rogue fraction of human kind but further investigation is needed in order to determine its true origins and its purpose.",
+                            "HIGH COMMAND: For that reason a recon task force has been assigned to search the ship for any survivors or piece of information that could shed light on the whole scenario.",
+                            "HIGH COMMAND: You will be in charge of assisting the deployed team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
+                            "HIGH COMMAND: We cannot give you any precise guidelines as we don't know what to expect, but we count on your adaptability and improvisation skills. You are, after all, one of the finest.",
+                            "HIGH COMMAND: Soldiers are expendable, information is invaluable. make us proud!",
+                            "(Sullivan: Well that sounded as cheerfull as can be...)",
+                            "(Sullivan: The marines should be done setting up the remote access box by now. If so i should be able to access it using the tunnel command)",
+                            "(Sullivan: The command should be tunnel T19 if i remember the address correctly)" ],
                         [
                            
                             function() {
@@ -1402,70 +1406,14 @@ function bootstrapStory(){
                                     new Machine("rgb(53, 17, 39)","192.168.0.10","FF:FF:FF:FF:FF")
                                 ];
                                 connectToMachine(starter);
-                                
-                                
-                                console.log("setting up scene 1");
-                                console.log("setting up machine filesystem");
-                                currentMachine.touch("gamm2.brf","[binary]");
-                                console.log("setting up machine programs");
-                                currentMachine.addProgram(
-                                    new Program("brfread","render the briefing.",
-                                    function(args){
-                                        if (!args || args.length == 0)
-                                            return "file name not supplied, enter: brfread filename"; 
-                                        if (args && args[0] == "gamm2.brf"){
-                                            story.completeCondition("briefing_opened");
-                                            return "Rendering briefing...";
-                                        }
-                                        return "File not found!";
+                                currentScreen.setInputBlocking(true);
+                                messageManager.setCallback(
+                                    function(){
+                                        story.completeCondition("briefing_complete");
                                     })
-                                );
-                            }
-                        ],
-                        [
 
-                        ]
-                    ),
-                    new Scene(
-                        [
-                            new Condition("establish_remote_connection")
-                        ],
-                        [
-                            "HIGH COMMAND: Greetings mr. Sullivan, as you are most probably aware of by now, an unmarked abandoned space ship has been located at the edge of our solar system.",
-                            "HIGH COMMAND: Its origins are unknown, but technology bears resemblance to our own.",
-                            "HIGH COMMAND: We suspect it belongs to a rogue fraction of human kind but further investigation is needed in order to determine its true origins and its purpose.",
-                            "HIGH COMMAND: For that reason a recon task force has been assigned to search the ship for any survivors or piece of information that could shed light on the whole scenario.",
-                            "HIGH COMMAND: You will be in charge of assisting the deployed team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
-                            "HIGH COMMAND: We cannot give you any precise guidelines as we don't know what to expect, but we count on your adaptability and improvisation skills. You are, after all, one of the finest.",
-                            "HIGH COMMAND: Soldiers are expendable, information is invaluable. make us proud!",
-                            "(Sullivan: Well that sounded as cheerfull as can be...)",
-                            "(Sullivan: The marines should be done setting up the remote access box by now. If so i should be able to access it using the tunnel command)",
-                            "(Sullivan: The command should be tunnel T19 if i remember the address correctly)"
-                        ],
-                        [
-                            function(){
-                                console.log("setting up scene 2");
-                                currentMachine.addProgram(
-                                    new Program("tunnel","creates a terminal to remote hardware",
-                                    function(args){
-                                        if (args == "T19"){
-                                            currentScreen.setInputBlocking(true);
-                                            setTimeout(
-                                                function(){
-                                                    currentMachine.runProgram("cls");
-                                                    currentScreen.appendCommandResult("Success: Connection Established!");
-                                                    story.completeCondition("establish_remote_connection");
-                                                    currentScreen.setInputBlocking(false);
-                                                },3000
-                                            )
-                                            
-                                            return "Attempting to connect to T19...";
-                                        } else{
-                                            return "no such device available";
-                                        }
-                                    })
-                                );
-                            }  
+                             
+                            }
                         ],
                         [
 
@@ -1494,6 +1442,7 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentScreen.setInputBlocking(false);
                                 currentMachine.touch("sully_064.log",
                                 [
                                     "(Sullivan: Brush up on MK41 carriers for mission"
@@ -1629,7 +1578,7 @@ function bootstrapStory(){
                                             radar.animateEntity("Sgt Whitcomb",405,55);
                                         }, (7000));
                                         console.log("moving on");
-                                    })
+                                    });
                                 
                                 
                             }
@@ -1818,7 +1767,7 @@ function loadEpisode(index){
     if (story.loadEpisode(index,hash)){
         menu.hide();
         story.init();
-        currentScreen.display();
+        //currentScreen.display();
     }
 }
 
