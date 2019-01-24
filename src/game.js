@@ -55,7 +55,7 @@ class FS{
 
 class Machine{
 
-    constructor(ip="0.0.0.0",mac="00:00:00:00:00"){
+    constructor(terminalColor,ip="0.0.0.0",mac="00:00:00:00:00"){
         this.state = "OK";
         this.fileSystem = new FS();
         this.currentUser = "root";
@@ -66,6 +66,7 @@ class Machine{
         this.programs = [];
         this.commandStack = [];
         this.commandStackIndex = 0;
+        this.terminalColor = terminalColor;
     }
 
     addProgram(program){
@@ -131,6 +132,9 @@ class Machine{
             case("logread"):{
                 return this.logread(args[0]);
             }
+            case("tunnel"):{
+                return this.tunnel(args[0]);
+            }
             case("netscan"):{
                 return this.netscan();
             }
@@ -164,12 +168,7 @@ class Machine{
                 return "";
             }
             case("cls"):{
-                var content = document.getElementById("display_content");
-                if(content){
-                    content.innerHTML = "";
-                }
-
-                return "";
+                return this.cls();
             }
 
 
@@ -206,6 +205,14 @@ class Machine{
         }
     }
 
+    cls(){
+        var content = document.getElementById("display_content");
+        if(content){
+            content.innerHTML = "";
+        }
+
+        return "";
+    }
     netscan(){
         var retval = "IP                 MAC\n"+
                      "--------------------------------------\n";
@@ -250,6 +257,16 @@ class Machine{
         var retval = this.cwd.getChildEntry(name);
         if(retval != null)
             return retval.content;
+    }
+
+    tunnel(address){
+        for(var i=0;i<network.machines.length;i++){
+            if (network.machines[i].ip == address){
+                connectToMachine(network.machines[i]);
+            }
+        }
+
+        return this.cls();
     }
 
     ls(){
@@ -571,6 +588,7 @@ class TypingMinigame{
         hud.hideHUD();
     }
 
+    
     refresh(){
         this.updateProgressHUD();
         if (this.currentHits >= this.targetHits){
@@ -610,11 +628,11 @@ class InteractiveScreen{
     constructor(){
         this.scr1 = document.getElementById("screen1");
         this.clear();
-
-        
-    
     }
 
+    setColor(color){
+        this.scr1.style.backgroundColor = color;
+    }
     updatePromptInfo(){
         var pinfo = document.getElementById("prompt_info");
         pinfo.innerHTML = currentMachine.promptInfo();
@@ -1340,13 +1358,15 @@ function bootstrapStory(){
                            
                             function() {
 
-                                connectToMachine(new Machine("192.168.0.12","AA:AA:AA:AA:AA"));
+                                var starter = new Machine("rgb(27, 24, 26)","192.168.0.12","AA:AA:AA:AA:AA");
                                 network = new Network();
                                 network.machines =
                                 [
-                                    currentMachine,
-                                    new Machine("192.168.0.10","FF:FF:FF:FF:FF")
+                                    starter,
+                                    new Machine("rgb(53, 17, 39)","192.168.0.10","FF:FF:FF:FF:FF")
                                 ];
+                                connectToMachine(starter);
+                                
                                 
                                 console.log("setting up scene 1");
                                 console.log("setting up machine filesystem");
@@ -1775,6 +1795,7 @@ function playSound(){
 function connectToMachine(machine){
     currentMachine = machine;
     if (currentScreen){
+        currentScreen.setColor(machine.terminalColor);
         currentScreen.updatePromptInfo();
     }
 }
