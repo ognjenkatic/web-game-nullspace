@@ -43,27 +43,28 @@ class FSFile{
 
 class FS{
     
-    constructor(){
+    constructor(user){
         this.rootDir = new FSFile("#/","755",["#bin","#boot","#dev","#etc","#home","#lib","#lost+found","#misc","#mnt","#net","#opt","#proc","#root","#sbin","#tmp","#usr","#var"]);
-        this.cwd = this.rootDir;
+        
 
-        this.rootDir.getChildEntry("#home").addDefaultChildEntries(["#sully"]);
+        this.rootDir.getChildEntry("#home").addDefaultChildEntries(["#"+user]);
         this.rootDir.getChildEntry("#etc").addDefaultChildEntries(["#default","#rc.d","#sound","#sysconfig"]);
         this.rootDir.getChildEntry("#mnt").addDefaultChildEntries(["#cdrom","#floppy"]);
         this.rootDir.getChildEntry("#usr").addDefaultChildEntries(["#bin","#games","#include","#lib","#local","#man","#sbin","#share","#src"]);
         this.rootDir.getChildEntry("#var").addDefaultChildEntries(["#gdm","#lib","#lock","#run","#log","#spool","#tmp"]);
+
+        this.cwd = this.rootDir.getChildEntry("#home").getChildEntry("#"+user);
     }
 }
 
 
 class Machine{
 
-    constructor(terminalColor,ip="0.0.0.0",mac="00:00:00:00:00"){
+    constructor(terminalColor,user="sully",ip="0.0.0.0",mac="00:00:00:00:00"){
         this.state = "OK";
-        this.fileSystem = new FS();
-        this.currentUser = "root";
+        this.fileSystem = new FS(user);
+        this.currentUser = user;
         this.ip = ip;
-        this.cwd = this.fileSystem.rootDir.getChildEntry("#home");
         this.mac = mac;
         this.services = [];
         this.programs = [];
@@ -257,7 +258,7 @@ class Machine{
     }
 
     logread(name){
-        var logEntry = this.cwd.getChildEntry(name);
+        var logEntry = this.fileSystem.cwd.getChildEntry(name);
         if (logEntry && logEntry.name.endsWith(".log")){
             messageManager.chat = logEntry.content;
             messageManager.chatIndex = 0;
@@ -270,23 +271,26 @@ class Machine{
     }
     
     pwd(){
-        return this.cwd.getPath();
+        return this.fileSystem.cwd.getPath();
     }
 
     cd(name){
         var retval = null;
-        if(name == "..")
-            retval = this.cwd.parentDir;
+        if(name == "~"){
+            retval = this.fileSystem.rootDir.getChildEntry("#home").getChildEntry("#"+this.currentUser);
+        }
+        else if(name == "..")
+            retval = this.fileSystem.cwd.parentDir;
         else
-            retval = this.cwd.getChildEntry("#"+name);
+            retval = this.fileSystem.cwd.getChildEntry("#"+name);
 
         if(retval != null)
-            this.cwd = retval;
+            this.fileSystem.cwd = retval;
         
     }
 
     cat(name){
-        var retval = this.cwd.getChildEntry(name);
+        var retval = this.fileSystem.cwd.getChildEntry(name);
         if(retval != null)
             return retval.content;
     }
@@ -295,6 +299,7 @@ class Machine{
         for(var i=0;i<network.machines.length;i++){
             if (network.machines[i].ip == address){
                 connectToMachine(network.machines[i]);
+                story.completeCondition("tunnel_"+network.machines[i].ip);
             }
         }
 
@@ -305,10 +310,10 @@ class Machine{
         var files = " ";
         var i=0;
 
-        if(this.cwd.childEntries.length > 0)
+        if(this.fileSystem.cwd.childEntries.length > 0)
             files = "";
-        for(i;i<this.cwd.childEntries.length;i++){
-            files += this.cwd.childEntries[i].name.replace("#","")+"\n";
+        for(i;i<this.fileSystem.cwd.childEntries.length;i++){
+            files += this.fileSystem.cwd.childEntries[i].name.replace("#","")+"\n";
         }
 
         return files;
@@ -316,11 +321,11 @@ class Machine{
 
     touch(name,content = "[binary]"){
         var newFile = new FSFile(name,"755",content,this.fileSystem.cwd);
-        this.cwd.childEntries.push(newFile);
+        this.fileSystem.cwd.childEntries.push(newFile);
     }
 
     promptInfo(){
-        return this.currentUser+"@"+this.ip+":"+this.cwd.getPath()+"$";
+        return this.currentUser+"@"+this.ip+":"+this.fileSystem.cwd.getPath()+"$";
     }
 }
 
@@ -1398,12 +1403,12 @@ function bootstrapStory(){
                            
                             function() {
 
-                                var starter = new Machine("rgb(27, 24, 26)","192.168.0.12","AA:AA:AA:AA:AA");
+                                var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","AA:AA:AA:AA:AA");
                                 network = new Network();
                                 network.machines =
                                 [
                                     starter,
-                                    new Machine("rgb(53, 17, 39)","192.168.0.10","FF:FF:FF:FF:FF")
+                                    new Machine("rgb(53, 17, 39)","james","192.168.0.10","FF:FF:FF:FF:FF")
                                 ];
                                 connectToMachine(starter);
                                 currentScreen.setInputBlocking(true);
@@ -1446,24 +1451,7 @@ function bootstrapStory(){
                                 currentMachine.touch("sully_064.log",
                                 [
                                     "(Sullivan: Brush up on MK41 carriers for mission"
-                                ]);
-                                currentMachine.addProgram(
-                                    new Program(
-                                        "arp", "Recover the arp table",
-                                        function(){
-                                            return "Interface: 169.254.80.80 --- 0x5\n"+
-                                              "Internet Address      Network ID            Type\n"+
-                                              "169.254.255.255       ff-ff-ff-ff-ff-ff     static\n"+ 
-                                              "224.0.0.7             01-00-5e-00-00-07     static\n"+    
-                                              "224.0.0.22            01-00-5e-00-00-16     static\n"+    
-                                              "224.0.0.251           01-00-5e-00-00-fb     static\n"+    
-                                              "224.0.0.252           01-00-5e-00-00-fc     static\n"+    
-                                              "239.0.0.250           01-00-5e-00-00-fa     static\n"+    
-                                              "239.255.255.250       01-00-5e-7f-ff-fa     static\n";
-                                        }
-
-                                    )
-                                )
+                                ]);;
                                 console.log("Setting up scene 3");
                                 console.log("Setting up typing minigame");
                                 currentMinigame = new TypingMinigame(1,words,10,10,
@@ -1589,7 +1577,7 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("connect_to_console")
+                            new Condition("tunnel_192.168.0.10")
                         ],
                         [
                             "Sgt Whitcomb: OK, we managed. But it's still not booting up, it's stuck on some sort of recovery screen.",
@@ -1598,32 +1586,7 @@ function bootstrapStory(){
 
                         ],
                         [
-                            function(){
-                                
-                                currentMachine.updateProgram(
-                                    "tunnel",
-                                    function(args){
-                                        if (args == "T14"){
-                                            currentScreen.setInputBlocking(true);
-                                            setTimeout(
-                                                function(){
-                                                    currentMachine.runProgram("cls");
-                                                    currentScreen.appendCommandResult("Success: Connection Established!");
-                                                    currentScreen.appendCommandResult("Warning: System in recovery mode!");
-                                                    currentScreen.appendCommandResult("Warning: Unable to restore point, using defaults!");
-                                                    currentScreen.appendCommandResult("Warning: Resources partially unavailable!");
-                                                    currentScreen.appendCommandResult("Error: No recovery instructions present! Error code 5003.");
-                                                    story.completeCondition("connect_to_console");
-                                                    currentScreen.setInputBlocking(false);
-                                                },3000
-                                            )
-                                            
-                                            return "Attempting to connect to T14...";
-                                        } else{
-                                            return "no such device available";
-                                        }
-                                    }); 
-                            }
+                            
                         ],
                         [
                             
