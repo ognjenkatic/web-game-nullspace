@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="game.css">
+    <script src="radar_designer.js"></script>
+    <title>Null Space</title>
+    <link rel="icon" href="nspc.png">
+  </head>
+  <img id="cns1png" style="display:none;" src="cns1.png">
+  <img id="cns2png" style="display:none;" src="cns2.png">
+  <img id="sgtpng" style="display:none;" src="sgt.png">
+  <img id="pvtpng" style="display:none;" src="pvt.png">
+  <img id="blkhdo" style="display:none;" src="bulkhead_open.png">
+  <img id="blkhdc" style="display:none;" src="bulkhead_closed.png">
+  <body onload="init()">
+    <div id="overlay"  ></div>
+    <div class="placed" id="screen1" >
+      <h1 id="dump_coords" style="color:white;">DASD</h1>>
+    </div>
+    <div class="placed" id="screen2"  >
+      <canvas class="placed" width="720x" height="480px" style="pointer-events: none;" id="bg_canvas" ></canvas>
+      <canvas class="placed" width="720px" height="480px" style="pointer-events: none;" id="mg_canvas"></canvas>
+      <canvas class="placed" width="720px"  height="480px" id="fg_canvas" ></canvas>
+    </div>
+    <div id="fall_container">
+        
+    </div>
+  </body>
+</html>
