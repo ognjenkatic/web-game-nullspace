@@ -2218,6 +2218,7 @@ function bootstrapStory(){
                         [
                             function(){
                                 radar.bcdraw_clear();
+                                radar.drawEntities();
                                 var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
                                 var secu = new Machine("rgb(73, 0, 71)","Scott","192.168.0.22","Security terminal");
                                 currentNetwork = new Network();
@@ -2240,6 +2241,7 @@ function bootstrapStory(){
                                 
                                 currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
+                                    radar.animateEntity("Pvt Johnson",62,210);
                                     connectToMachine(currentNetwork.machines[1]);
                                     currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
@@ -2249,9 +2251,27 @@ function bootstrapStory(){
                             }
                         ],
                         [
-                            //radar
+                            new RadarEntity(0,184,"bound_wall",null,0,1,30,400),
+                            new RadarEntity(0,0,"bound_wall",null,0,1,30,120),
+                            new RadarEntity(0,0,"bound_wall",null,0,1,720,100),
+                            new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
+                            new RadarEntity(290,0,"bound_wall",null,0,1,32,120),
+                            new RadarEntity(290,183,"bound_wall",null,0,1,150,420),
+                            new RadarEntity(700,0,"bound_wall",null,0,1,30,350),
+                            new RadarEntity(0,450,"bound_wall",null,0,1,720,350),
+                            new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
+                            new RadarEntity(0,125,"bulkhead_closed",null,0,3),
+                            new RadarEntity(293,125,"bulkhead_closed","",0,3),
+                            new RadarEntity(170,130,"sargeant","Sgt Whitcomb",0,1.5),
+                            new RadarEntity(60,130,"private","Pvt Blake",0,1.5),
+                            new RadarEntity(180,160,"private","Pvt Wyatt",0,1.5),
+                            new RadarEntity(60,160,"private","Pvt Johnson",0,1.5),
+                            new RadarEntity(60,230,"sun","L1",0,1,15,15),
+                            new RadarEntity(60,90,"sun","L2",0,1,15,15),
+                            new RadarEntity(230,230,"sun","L3",0,1,15,15),
+                            new RadarEntity(230,90,"sun","L4",0,1,15,15),
                         ]
-                    ),
+                    ),/*
                     new Scene(
                         [
                             new Condition("override_2_of_4"),
@@ -2262,6 +2282,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                radar.appendEntity(new RadarEntity(60,230,"ship","L1",0,1,15,15));
+                                radar.bcdraw_clear();
+                                radar.drawEntities();
                                 currentMinigame = new TypingMinigame(1,numbers,1,5,
                                     function(){
                                         story.completeCondition("override_2_of_4");
@@ -2273,8 +2296,11 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
+                                    radar.animateEntity("Pvt Blake",61,112);
                                     currentScreen.setState("hacking");
+                                    currentScreen.setInputBlocking(false);
                                 });
                             }
                         ],
@@ -2293,6 +2319,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                radar.appendEntity(new RadarEntity(60,90,"ship","L2",0,1,15,15));
+                                radar.bcdraw_clear();
+                                radar.drawEntities();
                                 currentMinigame = new TypingMinigame(1,numbers,1,5,
                                     function(){
                                         story.completeCondition("override_3_of_4");
@@ -2306,6 +2335,7 @@ function bootstrapStory(){
                                     },true);
                                 
                                 messageManager.setCallback(()=>{
+                                    radar.animateEntity("Pvt Wyatt",230,211);
                                     currentScreen.setState("hacking");
                                 });
                             }
@@ -2324,6 +2354,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                radar.appendEntity(new RadarEntity(230,230,"ship","L3",0,1,15,15));
+                                radar.bcdraw_clear();
+                                radar.drawEntities();
                                 currentMinigame = new TypingMinigame(1,numbers,1,5,
                                     function(){
                                         story.completeCondition("override_4_of_4");
@@ -2336,6 +2369,7 @@ function bootstrapStory(){
                                         ])
                                     },true);
                                 messageManager.setCallback(()=>{
+                                    radar.animateEntity("Sgt Whitcomb",230,113);
                                     currentScreen.setState("hacking");
                                 });
                                 
@@ -2358,8 +2392,15 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                radar.appendEntity(new RadarEntity(230,90,"ship","L4",0,1,15,15));
+                                radar.bcdraw_clear();
+                                radar.drawEntities();
                                 currentMinigame = new TypingMinigame(1,words,1,5,
                                     function(){
+                                        radar.removeEntity("");
+                                        radar.prependEntity(new RadarEntity(293,125,"bulkhead_open","",0,3));
+                                        radar.bcdraw_clear();
+                                        radar.drawEntities();
                                         story.completeCondition("hack_door");
                                     },
                                     function(){
@@ -2390,7 +2431,20 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                story.completeCondition("walked_to_logs");
+                                messageManager.setCallback(()=>{
+                                    radar.animateEntity("Sgt Whitcomb",582,135);
+                                    radar.animateEntity("Pvt Johnson",450,150);
+                                    radar.animateEntity("Pvt Blake",490,135);
+                                    radar.animateEntity("Pvt Wyatt",582,150);
+
+                                    radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
+                                    radar.prependEntity(new RadarEntity(293,125,"bulkhead_open","",0,3));
+
+                                    setTimeout(()=>{
+                                        story.completeCondition("walked_to_logs");
+                                    },8000);
+                                });
+                                
                             }
                         ],
                         [
@@ -2475,10 +2529,10 @@ function bootstrapStory(){
                         [
                             //radar
                         ]
-                    ),
+                    ),*/
                     new Scene(
                         [
-                            new Condition("read_convo"),
+                            new Condition("read_convo1"),
                         ],
                         [
                             "(Sullivan: Finally...lets take a look at this...)",
@@ -2505,10 +2559,11 @@ function bootstrapStory(){
                             "Cpt Hammet: Someone....help us, please..."
                         ],
                         [
-                            ()=>{
+                            function (){
+                                //currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
-                                    story.completeCondition("read_convo");
-                                })
+                                    story.completeCondition("read_convo1");
+                                });
                             }
                         ],
                         [
@@ -2531,7 +2586,28 @@ function bootstrapStory(){
                             "Sgt Whitcomb: Yeah, yeah! Round up men, we need to go deeper into this rabbit hole."
                         ],
                         [
-                            //init go to next room
+                            function(){
+                                currentScreen.setInputBlocking(false);
+                                messageManager.setCallback(function(){
+                                    console.log("ENDING");
+                                    /*
+                                    radar.animateEntity("Sgt Whitcomb",582,365);
+                                    radar.animateEntity("Pvt Johnson",450,380);
+                                    radar.animateEntity("Pvt Blake",490,365);
+                                    radar.animateEntity("Pvt Wyatt",582,380);
+                                    radar.drawEntities();
+                                    setTimeout(()=>{
+                                        radar.animateEntity("Sgt Whitcomb",982,365);
+                                        radar.animateEntity("Pvt Johnson",950,380);
+                                        radar.animateEntity("Pvt Blake",990,365);
+                                        radar.animateEntity("Pvt Wyatt",982,380);
+                                    },6000);
+                                    setTimeout(()=>{
+                                        
+                                        story.completeCondition("walk_out");
+                                    },2000);*/
+                                });
+                            }
                         ],
                         [
                             //radar

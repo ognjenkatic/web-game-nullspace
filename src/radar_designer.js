@@ -345,36 +345,45 @@ var currentNetwork;
 
 function doAnimations(){
     
-    radar.removeEntity("Bulkhead");
-    radar.prependEntity(new RadarEntity(690,130,"bulkhead_open",null,0,3));
+   
+    
+    
 
-    radar.appendEntity(new RadarEntity(485,230,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(470,230,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(500,215,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(485,215,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(470,215,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(500,245,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(485,245,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(470,245,"ship",null,270,1,10,10));
-    radar.appendEntity(new RadarEntity(500,230,"ship",null,270,1,10,10));
+    
 
-    radar.animateEntity("Pvt Blake",730,160);
+    
     setTimeout(()=>{
-        radar.animateEntity("Pvt Wyatt",730,141);
-    },3000);
+        radar.animateEntity("Sgt Whitcomb",582,135);
+        radar.animateEntity("Pvt Johnson",450,150);
+        radar.animateEntity("Pvt Blake",490,135);
+        radar.animateEntity("Pvt Wyatt",582,150);
 
-    setTimeout(()=>{
-        radar.animateEntity("Pvt Johnson",730,141);
+        radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
+        
     },3000);
     setTimeout(()=>{
-        radar.animateEntity("Sgt Whitcomb",407,160);
-    },1000);
+        radar.animateEntity("Sgt Whitcomb",582,365);
+        radar.animateEntity("Pvt Johnson",450,380);
+        radar.animateEntity("Pvt Blake",490,365);
+        radar.animateEntity("Pvt Wyatt",582,380);
+
+        radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
+    },11000);
+
     setTimeout(()=>{
-        radar.animateEntity("Sgt Whitcomb",730,160);
-    },5000);
-    setTimeout(()=>{
-        //
-    },5000);
+        radar.animateEntity("Sgt Whitcomb",982,365);
+        radar.animateEntity("Pvt Johnson",950,380);
+        radar.animateEntity("Pvt Blake",990,365);
+        radar.animateEntity("Pvt Wyatt",982,380);
+
+    },17000);
+    radar.removeEntity("");
+    radar.appendEntity(new RadarEntity(60,230,"ship","L1",0,1,15,15));
+    radar.appendEntity(new RadarEntity(60,70,"ship","L2",0,1,15,15));
+    radar.appendEntity(new RadarEntity(230,230,"ship","L3",0,1,15,15));
+    radar.appendEntity(new RadarEntity(230,70,"ship","L4",0,1,15,15));
+    
+    
     radar.bcdraw_clear();
     radar.drawEntities();
 }
@@ -409,28 +418,26 @@ function init(){
     radar.mcdraw_lines(3,0);
     radar.bcdraw_clear();
     radar.entities = [
-        new RadarEntity(0,30,"up_wall_full",null),
-        new RadarEntity(0,145,"bound_wall",null,0,1,350,400),
-        new RadarEntity(0,400,"bound_wall",null,0,1,720,400),
-        new RadarEntity(688,184,"bound_wall",null,0,1,500,400),
-        new RadarEntity(688,10,"bound_wall",null,0,1,500,120),
-        new RadarEntity(690,130,"bulkhead_closed","Bulkhead",0,3),
-        new RadarEntity(360,353,"sargeant","Sgt Whitcomb",0,1.5),
-        new RadarEntity(407,160,"private","Pvt Blake",0,1.5),
-        new RadarEntity(650,141,"private","Pvt Wyatt",0,1.5),
-        new RadarEntity(489,180,"private","Pvt Johnson",0,1.5),
-        new RadarEntity(500,230,"sun",null,270,1,10,10),
-        new RadarEntity(485,230,"junk",null,270,1,10,10),
-        new RadarEntity(470,230,"junk",null,270,1,10,10),
-        new RadarEntity(500,215,"junk",null,270,1,10,10),
-        new RadarEntity(485,215,"junk",null,270,1,10,10),
-        new RadarEntity(470,215,"junk",null,270,1,10,10),
-        new RadarEntity(500,245,"junk",null,270,1,10,10),
-        new RadarEntity(485,245,"junk",null,270,1,10,10),
-        new RadarEntity(470,245,"junk",null,270,1,10,10),
-        new RadarEntity(475,260,"console2","Power distributor",0,1.5),
-        new RadarEntity(485,200,"console2","Generator aligner",180,1.5),
-        new RadarEntity(360,370,"console1","Generator terminal",270,1.5)
+        
+        new RadarEntity(0,184,"bound_wall",null,0,1,30,400),
+        new RadarEntity(0,0,"bound_wall",null,0,1,30,120),
+        new RadarEntity(0,0,"bound_wall",null,0,1,720,100),
+        new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
+        new RadarEntity(290,0,"bound_wall",null,0,1,32,120),
+        new RadarEntity(290,183,"bound_wall",null,0,1,150,420),
+        new RadarEntity(700,0,"bound_wall",null,0,1,30,350),
+        new RadarEntity(0,450,"bound_wall",null,0,1,720,350),
+        new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
+        new RadarEntity(0,125,"bulkhead_closed",null,0,3),
+        new RadarEntity(293,125,"bulkhead_closed","",0,3),
+        new RadarEntity(170,130,"sargeant","Sgt Whitcomb",0,1.5),
+        new RadarEntity(60,130,"private","Pvt Blake",0,1.5),
+        new RadarEntity(180,160,"private","Pvt Wyatt",0,1.5),
+        new RadarEntity(60,160,"private","Pvt Johnson",0,1.5),
+        new RadarEntity(60,230,"sun","L1",0,1,15,15),
+        new RadarEntity(60,90,"sun","L2",0,1,15,15),
+        new RadarEntity(230,230,"sun","L3",0,1,15,15),
+        new RadarEntity(230,90,"sun","L4",0,1,15,15),
     ];
     
         
