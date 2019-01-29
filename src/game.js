@@ -364,6 +364,49 @@ class Network{
     }
 }
 
+class HUDTimer{
+    constructor(time,callback){
+        this.time = time;
+        this.currentTime = time;
+        this.hd = document.getElementById("HUD");
+        this.cddiv = document.createElement("div");
+        this.cddiv.id = "HUD_timer";
+        this.hd.appendChild(this.cddiv);
+        this.callback = callback;
+        this.isRunning = false;
+    }
+
+    drawHUDTimer(){
+        this.hd.appendChild(this.cddiv);
+    }
+
+    tick(){
+        setTimeout(()=>{
+            this.currentTime--;
+            if (this.currentTime >=0 && this.isRunning) {
+                var minutes = (Math.round(this.currentTime/60))-1;
+                this.cddiv.innerHTML = ((this.currentTime/60>9) ? "" : "0")+(minutes > 0? minutes : 0)+":"+ ((this.currentTime%60>9)? "" : "0")+this.currentTime%60;
+                this.tick();
+            }
+            if (this.currentTime <=0)
+                this.callback();
+        },1000)
+    }
+
+    startTimer(){
+        this.isRunning = true;
+        this.tick();
+    }
+
+    resetTimer(){
+        this.isRunning = false;
+        this.currentTime = this.time;
+    }
+
+    stopTimer(){
+        this.isRunning = false;
+    }
+}
 class HUD{
     constructor(){
         this.HUD = null;
@@ -393,6 +436,14 @@ class AnalysisMinigame{
         this.sample = sample;
         this.subs = [];
         this.callback = callback;
+
+        currentScreen.appendCommandResult("Initializing: Loading crypto modules.");
+        currentScreen.appendCommandResult("Initializing: Binding file contents to input.");
+        currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs TE' will replace occurances of the letter T with the letter E.");
+        currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs' print the current state of the sample.");
+        currentScreen.appendCommandResult("Initializing: freq command ready. Example: 'freq' return character correlation table by probability.\n\n");
+        currentScreen.appendCommandResult("Initializing: Printing workspace sample:\n"+this.sample);
+
     }
 
     substitute(tar,sub){
@@ -418,6 +469,7 @@ class AnalysisMinigame{
         return retval;
     }
 }
+
 class SudokuMinigame{
     constructor(initial,solve,xname,yname,successCallback){
         this.initial = initial;
@@ -2517,16 +2569,11 @@ function bootstrapStory(){
                                 "CIM HADDTM: GYYOCTKL, DB JWAKMTKL! FGE!",
                                 "CIM HADDTM: LGDTGFT....HTSI WL, ISTALT..."]);
 
-                                currentScreen.appendCommandResult("Initializing: Loading crypto modules.");
-                                currentScreen.appendCommandResult("Initializing: Binding file hammet_069.log to input.");
-                                currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs TE' will replace occurances of the letter T with the letter E.");
-                                currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs' print the current state of the sample.");
-                                currentScreen.appendCommandResult("Initializing: freq command ready. Example: 'freq' return character correlation table by probability.\n\n");
-                                currentScreen.appendCommandResult("Initializing: Printing workspace sample:\nCIM HADDTM: MHOL OL CAIMAOF HADDTM GY MHT F.L.W. KADLTL LITAQOFU. ET AKT ROLIAMCHTR GF AF TLCGKM DOLLOGF MG IKGXORT DOSOMAKB LWIIGKM MG MHT CGSGFB LHOI HTAROFU MGEAKRL MHT ALMTKGOR ZTSM A-482.");
+                                
 
                                 currentNetwork.machines[2].addProgram(new Program(
                                     "freq","Writes out the letter frequencies of  a text. For use in cracking ciphers.",(arg)=>{
-                                        return "standard   hammet_069.log\n"+
+                                        return "standard   log file\n"+
                                         "E   12.02%	T   11.92%\n"+
                                         "T   9.10%	M   10.82%\n"+
                                         "A    8.12%	A    7.46%\n"+
@@ -2648,6 +2695,7 @@ function bootstrapStory(){
             ),
             new Episode(
                 [
+                    
                     new Scene(
                         [
                             new Condition("walk_into_room")
@@ -2662,12 +2710,32 @@ function bootstrapStory(){
                             "Sgt Whitcomb: I know what you're going to say...save your breath. We are going in."
                         ],
                         [
-                            // walk in
+                            ()=>{
+                                radar.bcdraw_clear();
+                                radar.drawEntities();
+                                var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
+                                var secu = new Machine("rgb(73, 0, 71)","Scott","192.168.0.22","Security terminal");
+                                currentNetwork = new Network();
+                                currentNetwork.machines =
+                                [
+                                    starter,
+                                    secu
+                                ];
+                              
+                                connectToMachine(currentNetwork.machines[0]);
+                                currentScreen.setInputBlocking(true);
+
+                                messageManager.setCallback(()=>{
+                                    setTimeout(() => {
+                                        story.completeCondition("walk_into_room");
+                                    }, 100);
+                                });
+                            }
                         ],
                         [
                             // set up rooms 
                         ]
-                    ),
+                    ),/*
                     new Scene(
                         [
                             new Condition("decrypt_log")
@@ -2685,6 +2753,51 @@ function bootstrapStory(){
                         ],
                         [
                             // move around, set up log hacking
+                            ()=>{
+                                currentNetwork.machines.push(new Machine("rgb(0, 62, 72)","Hammet","192.168.0.28"));
+                                connectToMachine(currentNetwork.machines[2]);
+                                currentNetwork.machines[2].touch("hammet_069.log",["YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",
+                                "YIM OBNNGM: MOHL HL MOG YBIMBHF LIGBQHFU. MOG OHUO KBFQHFU TCCHYGKL BKG MKBIIGR HF MOG YBIMBHF'L JWBKMGKL, BSTFU EHMO NG.",
+                                "YIM OBNNGM: EG LGG FT GLYBIG. MOHL NHUOM ZG NA SBLM GFMKA. NA NHFR HL EGBKA. NA NGNTKHGL BKG ZSWKKGR",
+                                "YIM OBNNGM: BCMGK MOG BHKSTYQ HFYHRGFM HF RTYQHFU ZBA B CGE YKGENGF XBFHLOGR. MOGF MOG ITEGK LWKUG OBIIGFGR",
+                                "YIM OBNNGM: BM MOBM NTNGFM MOG EOTSG LOHI EGFM LHSGFM. EG OBXG FT YSWG EOBM'L OBIIGFHFU EHMO MOG KGLM TC MOG YKGE.",
+                                "YIM OBNNGM: MOGKG HL FT MGSSHFU HC BFATFG GSLG TF MOHL LOHI HL BSHXG. HC MOGA EGKG LTNGTFG ETWSR'XG CTWFR WL ZA FTE.",
+                                "YIM OBNNGM: H CGBK MOG ETKLM... EG YBF TFSA OT",
+                                "(HF ZBYQUKTWFR: OGMCHGSR, EOBM BKG ATW RTHF?!)",
+                                "YIM OBNNGM: SHGWMGFBFM, LMBFR RTEF!",
+                                "(HF ZBYQUKTWFR: BBBBBKKUOOO!!)",
+                                "YIM OBNNGM: SHGWMGFBFM. OBXG ATW STLM ATWK NHFR! UGM OHN WFRGK YTFMKTS!",]);
+                                currentNetwork.machines[2].addProgram(new Program(
+                                    "freq","Writes out the letter frequencies of  a text. For use in cracking ciphers.",(arg)=>{
+                                        return "standard   log file\n"+
+                                        "E   12.02%	G   12.95%\n"+
+                                        "T   9.10%	M    9.83%\n"+
+                                        "A    8.12%	B    8.58%\n"+
+                                        "G    6.91%	F    7.96%\n"+
+                                        "O    7.68%	O    7.02%\n"+
+                                        "I    7.31%	H    6.86%\n"+	
+                                        "N    6.95%	T    5.3%\n"+
+                                        "S    6.28%	K    4.99%\n"+
+                                        "R    6.02%	N    4.68%\n";
+                                    }
+                                ));
+
+                                //BZYRGCUOHPQSNFTIJKLMWXEVAD
+                                //ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                currentMinigame = new AnalysisMinigame(["BZYRGCUOHPQSNFTIJKLMWXEVAD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"],4,"YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",()=>{
+                                    story.completeCondition("decrypt_log");
+                                });
+                                currentNetwork.machines[2].addProgram(new Program(
+                                    "subs","Attempts to substitute a letter in file. 'subs ET' to replace E with T, or 'subs' to print current sample state.",(arg)=>{
+                                        if (!arg[0])
+                                            return currentMinigame.sample;
+                                        return currentMinigame.substitute(arg[0][0],arg[0][1]);
+                                    }
+                                ));
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(false);
+                                })
+                            }
                         ],
                         [
 
@@ -2716,7 +2829,13 @@ function bootstrapStory(){
                             "Sgt Whitcomb: Leave! Now! Get out and seal the doors!"
                         ],
                         [
-                            //animate comotion and death of blake
+                            ()=>{
+                                messageManager.setCallback(()=>{
+                                    setTimeout(() => {
+                                        story.completeCondition("leave_room");
+                                    }, 100);
+                                })
+                            }
                         ],
                         [
                             //nothing
@@ -2746,6 +2865,48 @@ function bootstrapStory(){
                             //move to the next door, close previous
                             //hack the door
                             //go to the hangar bay
+                            ()=>{
+                                //hud = new HUD();
+                                //hud.drawHUD();
+                                //hud.showHUD();
+                                currentScreen.setInputBlocking(false);
+                                currentTimer = new HUDTimer(60,()=>{
+                                    gameOver([
+                                        "Sullivan: Nooooo"
+                                    ]);
+                                });
+                                hud.showHUD();
+                                currentTimer.startTimer();
+                                currentMinigame = new TypingMinigame(
+                                    1,words,20,100,()=>{
+                                        //move to door 2
+                                        currentMinigame = new TypingMinigame(
+                                            1,numbers,20,10,()=>{
+                                                // move to door 3
+                                                currentMinigame = new TypingMinigame(
+                                                    1,words,20,10,()=>{
+                                                        //move to hangar
+                                                    },
+                                                    ()=>{
+
+                                                    },false
+                                                );
+                                                currentMinigame.setState("hacking");
+                                            },()=>{
+
+                                            },true
+                                        );
+                                        currentScreen.setState("hacking");
+                                    },()=>{
+
+                                    },false
+                                );
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setState("hacking");
+                                });
+                                
+                                
+                            }
                         ],
                         [
 
@@ -2766,7 +2927,7 @@ function bootstrapStory(){
                         [
 
                         ]
-                    ),
+                    ),*/
                     new Scene(
                         [
                             new Condition("hack_the_game")
@@ -2781,6 +2942,25 @@ function bootstrapStory(){
                             //play hack game
                             //show hint to sully on fail like they are flashes...inspect...console....story.completeCondition(....hack_the_game..)
                             //
+                            ()=>{
+                                currentScreen.setInputBlocking(false);
+                                currentMinigame = new TypingMinigame(
+                                    5,words,100,10,()=>{
+                                        story.completeCondition("hack_the_game");
+                                    },()=>{
+                                        gameOver([
+                                            "(Flashing vision: story.completeCondition('hack_the_game');)",
+                                            "(Sullivan: What, what does that mean?! I...i don't understand...where..)",
+                                            "(Voice: Reach out into the very fabric of our world and bend it to your will!)",
+                                            "(Sullivan: What?! What world, what is this!? The world isnt something i can inspect and view its source or debug with a console!"
+                                        ]);
+                                    }
+                                );
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(false);
+                                    currentScreen.setState("hacking");
+                                })
+                            }
                         ],
                         [
 
@@ -2788,7 +2968,7 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-
+                            new Condition("read_text")
                         ],
                         [
                             "Sgt Whitcomb: Damn, how did you pull that off Sully? I was sure we were'nt going to make it out of that.",
@@ -2797,13 +2977,17 @@ function bootstrapStory(){
                             "(Sullivan: What...what happened there...)"
                         ],
                         [
-                            //after read move on to credits episode
+                            ()=>{
+                                messageManager.setCallback(()=>{
+                                    story.completeCondition("read_text");
+                                })
+                            }
                         ],
                         [
 
                         ]
                     )
-                ], "Get out of dodge!","84252"
+                ], "Get out of dodge!","66842"
             ),
             new Episode(
                 new Scene
@@ -2928,7 +3112,7 @@ var numbers = [];
 var story;
 var menu;
 var currentNetwork;
-
+var currentTimer;
 //var audio = new Audio('type.ogg');
 // Main
 function init(){

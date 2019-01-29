@@ -202,6 +202,7 @@ canvas{
   z-index: 1001;
 }
 
+
 #fall_container{
   top: 183px;
   left:61px;
@@ -250,12 +251,19 @@ input:focus {
   outline: none;
 }
 
+#HUD_timer{
+  color:white;
+  font-size:80px;
+  position: absolute;
+  top: 120px;
+  left: 260px;
+}
 #HUD{
   background-color: black;
   top:0px;
   left:0px;
   width: 686px;
-  height: 130px;
+  height: 200px;
   margin: 10px;
   border-radius: 5px;
   z-index: 1001;
