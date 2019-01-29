@@ -1068,6 +1068,8 @@ class Radar{
             else if (type == "console1"){
                 img = document.getElementById("cns1png");
                 
+            }else if (type == "chair"){
+                img = document.getElementById("chairpng");
             }
             else if (type == "console2"){
                 img = document.getElementById("cns2png");
@@ -1349,6 +1351,7 @@ class Story{
     loadEpisode(index,code){
         if (this.episodes.length > index){
             if (index == 0 || this.episodes[index].code == code){
+                this.currEpisodeIndex = index;
                 this.currEpisode = this.episodes[index];
                 this.currEpisode.reset();
                 console.log("loaded "+this.episodes[index].title);
@@ -1370,7 +1373,7 @@ class Story{
 }
 
 
-
+var call =0;
 class MessageManager{
 
     constructor(){
@@ -1431,14 +1434,19 @@ class MessageManager{
     }
 
     progressChat(){
+        var lcal = ++call;
         if (!messageManager.printingMessage){
+            console.log("CHAT INDEX IS "+messageManager.chatIndex+" and l is "+messageManager.chat.length+" at call"+lcal);
             if(messageManager.chatIndex < messageManager.chat.length){
                 messageManager.printMessage(messageManager.chat[messageManager.chatIndex++],messageManager.printSpeed);
             } else {
                 messageManager.closeMessages();
                 if (messageManager.callback){
-                    messageManager.callback();
+                    var cb = messageManager.callback;
                     messageManager.callback = null;
+                    cb();
+                    console.log("NULLING CALLBACK at call "+lcal);
+                    
                 }
             }
         } else
@@ -2253,10 +2261,10 @@ function bootstrapStory(){
                         [
                             new RadarEntity(0,184,"bound_wall",null,0,1,30,400),
                             new RadarEntity(0,0,"bound_wall",null,0,1,30,120),
-                            new RadarEntity(0,0,"bound_wall",null,0,1,720,100),
+                            new RadarEntity(0,50,"bound_wall",null,0,1,720,50),
                             new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
                             new RadarEntity(290,0,"bound_wall",null,0,1,32,120),
-                            new RadarEntity(290,183,"bound_wall",null,0,1,150,420),
+                            new RadarEntity(290,183,"bound_wall",null,0,1,35,420),
                             new RadarEntity(700,0,"bound_wall",null,0,1,30,350),
                             new RadarEntity(0,450,"bound_wall",null,0,1,720,350),
                             new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
@@ -2271,7 +2279,7 @@ function bootstrapStory(){
                             new RadarEntity(230,230,"sun","L3",0,1,15,15),
                             new RadarEntity(230,90,"sun","L4",0,1,15,15),
                         ]
-                    ),/*
+                    ),
                     new Scene(
                         [
                             new Condition("override_2_of_4"),
@@ -2333,9 +2341,10 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
-                                
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Pvt Wyatt",230,211);
+                                    currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
                                 });
                             }
@@ -2368,7 +2377,9 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(false);
                                     radar.animateEntity("Sgt Whitcomb",230,113);
                                     currentScreen.setState("hacking");
                                 });
@@ -2406,7 +2417,9 @@ function bootstrapStory(){
                                     function(){
                                         // not so dramatic
                                     },false);
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
                                 });
                                 
@@ -2431,15 +2444,29 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Sgt Whitcomb",582,135);
                                     radar.animateEntity("Pvt Johnson",450,150);
                                     radar.animateEntity("Pvt Blake",490,135);
                                     radar.animateEntity("Pvt Wyatt",582,150);
 
-                                    radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
                                     radar.prependEntity(new RadarEntity(293,125,"bulkhead_open","",0,3));
 
+                                    radar.prependEntity(new RadarEntity(578,108,"console2","Bridge console",0,1.5)),
+                                    radar.prependEntity(new RadarEntity(538,108,"console2",null,0,1.5)),
+                                    radar.prependEntity(new RadarEntity(498,108,"console2",null,0,1.5)),
+                                    radar.prependEntity(new RadarEntity(458,108,"console2",null,0,1.5)),
+                                    radar.prependEntity(new RadarEntity(332,230,"console2","Security console",0,1.5)),
+                                    radar.prependEntity(new RadarEntity(666,230,"console2","Weapons console",0,1.5)),
+                                    radar.prependEntity(new RadarEntity(332,250,"chair",null,0,2.5)),
+                                    radar.prependEntity(new RadarEntity(538,128,"chair",null,0,2.5)),
+                                    radar.prependEntity(new RadarEntity(498,128,"chair",null,0,2.5)),
+                                    radar.prependEntity(new RadarEntity(458,128,"chair",null,0,2.5)),
+                                    radar.prependEntity( new RadarEntity(578,128,"chair",null,0,2.5)),
+                                    radar.prependEntity(new RadarEntity(666,250,"chair",null,0,2.5)),
+                                    radar.prependEntity(new RadarEntity(480,226,"chair",null,0,3)),
+                                    radar.prependEntity(new RadarEntity(520,226,"chair",null,0,3)),
                                     setTimeout(()=>{
                                         story.completeCondition("walked_to_logs");
                                     },8000);
@@ -2466,6 +2493,7 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                currentScreen.setInputBlocking(true);
                                 currentNetwork.machines.push(new Machine("rgb(0, 62, 72)","Hammet","192.168.0.25"));
                                 connectToMachine(currentNetwork.machines[2]);
                                 currentNetwork.machines[2].touch("hammet_069.log",["CIM HADDTM: MHOL OL CAIMAOF HADDTM GY MHT F.L.W. KADLTL LITAQOFU. ET AKT ROLIAMCHTR GF AF TLCGKM DOLLOGF MG IKGXORT DOSOMAKB LWIIGKM MG MHT CGSGFB LHOI HTAROFU MGEAKRL MHT ALMTKGOR ZTSM A-482.",
@@ -2491,7 +2519,6 @@ function bootstrapStory(){
 
                                 currentScreen.appendCommandResult("Initializing: Loading crypto modules.");
                                 currentScreen.appendCommandResult("Initializing: Binding file hammet_069.log to input.");
-                                currentScreen.appendCommandResult("Initializing: Printing workspace sample:");
                                 currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs TE' will replace occurances of the letter T with the letter E.");
                                 currentScreen.appendCommandResult("Initializing: subs command ready. Example: 'subs' print the current state of the sample.");
                                 currentScreen.appendCommandResult("Initializing: freq command ready. Example: 'freq' return character correlation table by probability.\n\n");
@@ -2523,16 +2550,19 @@ function bootstrapStory(){
                                             return currentMinigame.sample;
                                         return currentMinigame.substitute(arg[0][0],arg[0][1]);
                                     }
-                                ))
+                                ));
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(false);
+                                })
                             }
                         ],
                         [
                             //radar
                         ]
-                    ),*/
+                    ),
                     new Scene(
                         [
-                            new Condition("read_convo1"),
+                            new Condition("read_convo"),
                         ],
                         [
                             "(Sullivan: Finally...lets take a look at this...)",
@@ -2560,9 +2590,9 @@ function bootstrapStory(){
                         ],
                         [
                             function (){
-                                //currentScreen.setInputBlocking(true);
+                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
-                                    story.completeCondition("read_convo1");
+                                    story.completeCondition("read_convo");
                                 });
                             }
                         ],
@@ -2587,10 +2617,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentScreen.setInputBlocking(false);
                                 messageManager.setCallback(function(){
                                     console.log("ENDING");
-                                    /*
+                                    
                                     radar.animateEntity("Sgt Whitcomb",582,365);
                                     radar.animateEntity("Pvt Johnson",450,380);
                                     radar.animateEntity("Pvt Blake",490,365);
@@ -2601,11 +2630,12 @@ function bootstrapStory(){
                                         radar.animateEntity("Pvt Johnson",950,380);
                                         radar.animateEntity("Pvt Blake",990,365);
                                         radar.animateEntity("Pvt Wyatt",982,380);
-                                    },6000);
-                                    setTimeout(()=>{
+                                        setTimeout(()=>{
                                         
-                                        story.completeCondition("walk_out");
-                                    },2000);*/
+                                            story.completeCondition("walk_out");
+                                        },5000);
+                                    },5000);
+                                    
                                 });
                             }
                         ],
@@ -2615,6 +2645,182 @@ function bootstrapStory(){
                     ),
 
                 ], "Hello, operator?","83417"
+            ),
+            new Episode(
+                [
+                    new Scene(
+                        [
+                            new Condition("walk_into_room")
+                        ],
+                        [
+                            "Sullivan: Sargeant, what's the status? Have you found the captain's quarters?",
+                            "Sgt Whitcomb: We are standing right in front of it. Something is very wrong here.",
+                            "Sullivan: What do you mean?",
+                            "Sgt Whitcomb: Well, the good news is that we found the captain and his officers. Bad news is that they don't look so...alive",
+                            "Sgt Whitcomb: The entrance door was unlocked when we got here. They are heavily bent. It's like something was hitting it from the inside with incredible force.",
+                            "Sgt Whitcomb: I don't feel like stepping into the room.",
+                            "Sgt Whitcomb: I know what you're going to say...save your breath. We are going in."
+                        ],
+                        [
+                            // walk in
+                        ],
+                        [
+                            // set up rooms 
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("decrypt_log")
+                        ],
+                        [
+                            "Sgt Whitcomb: I think i have an idea what happend to the door. The crewmen are all covered in blood.",
+                            "Sgt Whitcomb: The walls have scratch marks, dents and blood stains all over them. There is a lot of blood on the inside of the door as well.",
+                            "Sullivan: It looks like the poor sods were trapped inside and were trying to get out.",
+                            "Sgt Whitcomb: I don't like this at all. Few of the crewmen are missing flesh...",
+                            "Pvt Blake: Sarge, this ones chest is open like a can of tuna. His insides are all over the place!",
+                            "Sgt Whitcomb: Get the damn log and lets get out of here. I'm powering on the terminal...",
+                            "...",
+                            "Sgt Whitcomb: Damn, this one is also scrambled. Just get this video running so we can leave this place.",
+                            "Sullivan: I'll work as fast as i can. I don't like this any more than you do."
+                        ],
+                        [
+                            // move around, set up log hacking
+                        ],
+                        [
+
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("leave_room")
+                        ],
+                        [
+                            "CAPTAIN'S LOG: YEAR OF AWAKENING 2531:2114",
+                            "Cpt Hammet: This is the captain speaking. The high ranking officers are trapped in the captain's quarters, along with me.",
+                            "Cpt Hammet: We see no escape. This might be my last entry. My mind is weary. My memories are blurred",
+                            "Cpt Hammet: After the airlock incident in docking bay a few crewmen vanished. Then the power surge happened",
+                            "Cpt Hammet: At that moment the whole ship went silent. We have no clue what's happening with the rest of the crew.",
+                            "Cpt Hammet: There is no telling if anyone else on this ship is alive. If they were someone would've found us by now.",
+                            "Cpt Hammet: I fear the worst... we can only ho",
+                            "(In background: Hetfield, what are you doin?!)",
+                            "Cpt Hammet: lieutenant, stand down!",
+                            "(In background: aaaaarrghhh!!)",
+                            "Cpt Hammet: lieutenant. have you lost your mind! Get him under control!",
+                            "...",
+                            "Sgt Whitcomb: The video ends abruptly here. What the hell happened?",
+                            "Sullivan: People's minds are fragile when they face certain death. We can only speculate what really went down.",
+                            "Sgt Whitcomb: I suppose you are right. It's just i have a feeling something unnatural hapened. But your explanation is as good as any.",
+                            "Pvt Blake: aaaarrrgghh! Someone get him off me!....no!....aaahhhh!",
+                            "Pvt Wyatt: Blake! no!",
+                            "(In background: sound of gunfire)",
+                            "Sgt Whitcomb: Leave! Now! Get out and seal the doors!"
+                        ],
+                        [
+                            //animate comotion and death of blake
+                        ],
+                        [
+                            //nothing
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("reach_shuttle")
+                        ],
+                        [
+                            "Sullivan : What is happening sargeant?",
+                            "Sgt Whitcomb: They aren't dead Sully!",
+                            "Sgt Whitcomb: Fry the door console. Let's get the hell out of here.",
+                            "Sgt Whitcomb: Sully, get us the hell out of here. That thing ripped Blakes arms right off!",
+                            "Sullivan: Go down the corridor, fast. There is a docking station at the end.",
+                            "Sullivan: Argus command, do you read me? Have the shuttle dock at the hangar bay, right now!",
+                            "Argus comms officer: The shuttle will be there in seven.",
+                            "Sullivan: Whitcomb, get your men there now. I'll clear the passage for you.",
+                            "Sgt Whitcomb: Understood! Move move move!"
+
+                        ],
+                        [
+                            //start moving to the first door
+                            //hack the first door
+                            //move to the next door, close previous
+                            //hack door
+                            //move to the next door, close previous
+                            //hack the door
+                            //go to the hangar bay
+                        ],
+                        [
+
+                        ]
+                    ),
+                    new Scene(
+                        [
+
+                        ],
+                        [
+                            "Sgt Whitcomb: Okay, were entering the hangar bay. I see the dock!",
+                            "Sgt Whitcomb: Men, weld those metal sheets to the door fast!",
+                            "Sgt Whitcomb: That will keep them occupied for a while. Board the shuttle!",
+                        ],
+                        [
+                            //weld doors, start moving to shuttle
+                        ],
+                        [
+
+                        ]
+                    ),
+                    new Scene(
+                        [
+                            new Condition("hack_the_game")
+                        ],
+                        [
+                            "Sgt Whitcomb: The damn airlock just popped open, hold onto something!",
+                            "Sgt Whitcomb: Sully, close the goddamn airlock. Our magnetic boots cannot hold us in place!",
+                            "Sullivan: The whole damn ship is fighting us! I'm working on it!"
+                        ],
+                        [
+                            //init sucking out of airlock
+                            //play hack game
+                            //show hint to sully on fail like they are flashes...inspect...console....story.completeCondition(....hack_the_game..)
+                            //
+                        ],
+                        [
+
+                        ]
+                    ),
+                    new Scene(
+                        [
+
+                        ],
+                        [
+                            "Sgt Whitcomb: Damn, how did you pull that off Sully? I was sure we were'nt going to make it out of that.",
+                            "Sullivan: I..I...don't know, the hack wasnt going anywhere...I....",
+                            "Sgt Whitcomb: Nevermind, we're on our way, send word to high command, nuke this place!",
+                            "(Sullivan: What...what happened there...)"
+                        ],
+                        [
+                            //after read move on to credits episode
+                        ],
+                        [
+
+                        ]
+                    )
+                ], "Get out of dodge!","84252"
+            ),
+            new Episode(
+                new Scene
+                (
+                    [
+
+                    ],
+                    [
+                        //dev chat
+                    ],
+                    [
+                        //after read back to main menu
+                    ],
+                    [
+
+                    ]
+                ),"Fourth wall","23154"
             )
         ]
     )

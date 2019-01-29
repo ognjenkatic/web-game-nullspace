@@ -121,10 +121,14 @@ class Radar{
         if(x >= 0 && x <= cW && y >= 0 && y <= cH){
             if(type == "sargeant"){
                 img = document.getElementById("sgtpng");
-            } 
+            } else if (type =="chair"){
+                img = document.getElementById("chairpng");
+            }
             else if (type == "console1"){
                 img = document.getElementById("cns1png");
                 
+            } else if (type =="chair"){
+                img = document.getElementById("chairpng");
             }
             else if (type == "console2"){
                 img = document.getElementById("cns2png");
@@ -346,44 +350,6 @@ var currentNetwork;
 function doAnimations(){
     
    
-    
-    
-
-    
-
-    
-    setTimeout(()=>{
-        radar.animateEntity("Sgt Whitcomb",582,135);
-        radar.animateEntity("Pvt Johnson",450,150);
-        radar.animateEntity("Pvt Blake",490,135);
-        radar.animateEntity("Pvt Wyatt",582,150);
-
-        radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
-        
-    },3000);
-    setTimeout(()=>{
-        radar.animateEntity("Sgt Whitcomb",582,365);
-        radar.animateEntity("Pvt Johnson",450,380);
-        radar.animateEntity("Pvt Blake",490,365);
-        radar.animateEntity("Pvt Wyatt",582,380);
-
-        radar.appendEntity(new RadarEntity(578,108,"console2","Captains terminal",0,1.5));
-    },11000);
-
-    setTimeout(()=>{
-        radar.animateEntity("Sgt Whitcomb",982,365);
-        radar.animateEntity("Pvt Johnson",950,380);
-        radar.animateEntity("Pvt Blake",990,365);
-        radar.animateEntity("Pvt Wyatt",982,380);
-
-    },17000);
-    radar.removeEntity("");
-    radar.appendEntity(new RadarEntity(60,230,"ship","L1",0,1,15,15));
-    radar.appendEntity(new RadarEntity(60,70,"ship","L2",0,1,15,15));
-    radar.appendEntity(new RadarEntity(230,230,"ship","L3",0,1,15,15));
-    radar.appendEntity(new RadarEntity(230,70,"ship","L4",0,1,15,15));
-    
-    
     radar.bcdraw_clear();
     radar.drawEntities();
 }
@@ -418,13 +384,26 @@ function init(){
     radar.mcdraw_lines(3,0);
     radar.bcdraw_clear();
     radar.entities = [
-        
+        new RadarEntity(578,108,"console2","Bridge console",0,1.5),
+        new RadarEntity(538,108,"console2",null,0,1.5),
+        new RadarEntity(498,108,"console2",null,0,1.5),
+        new RadarEntity(458,108,"console2",null,0,1.5),
+        new RadarEntity(332,230,"console2","Security console",0,1.5),
+        new RadarEntity(332,250,"chair",null,0,2.5),
+        new RadarEntity(538,128,"chair",null,0,2.5),
+        new RadarEntity(498,128,"chair",null,0,2.5),
+        new RadarEntity(458,128,"chair",null,0,2.5),
+        new RadarEntity(578,128,"chair",null,0,2.5),
+        new RadarEntity(666,250,"chair",null,0,2.5),
+        new RadarEntity(480,226,"chair",null,0,3),
+        new RadarEntity(520,226,"chair",null,0,3),
+        new RadarEntity(666,230,"console2","Weapons console",0,1.5),
         new RadarEntity(0,184,"bound_wall",null,0,1,30,400),
         new RadarEntity(0,0,"bound_wall",null,0,1,30,120),
-        new RadarEntity(0,0,"bound_wall",null,0,1,720,100),
+        new RadarEntity(0,50,"bound_wall",null,0,1,720,50),
         new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
         new RadarEntity(290,0,"bound_wall",null,0,1,32,120),
-        new RadarEntity(290,183,"bound_wall",null,0,1,150,420),
+        new RadarEntity(290,183,"bound_wall",null,0,1,35,420),
         new RadarEntity(700,0,"bound_wall",null,0,1,30,350),
         new RadarEntity(0,450,"bound_wall",null,0,1,720,350),
         new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
