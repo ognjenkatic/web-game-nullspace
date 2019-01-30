@@ -3,11 +3,12 @@
   <head>
     <link rel="stylesheet" href="game.css">
     <script src="game.min.js"></script>
-    <title>Null Space</title>
+    <title>NULL Space</title>
     <link rel="icon" href="nspc.png">
   </head>
   <img id="cns1png" style="display:none;" src="cns1.png">
   <img id="cns2png" style="display:none;" src="cns2.png">
+  <img id="chairpng" style="display:none;" src="chair.png">
   <img id="sgtpng" style="display:none;" src="sgt.png">
   <img id="pvtpng" style="display:none;" src="pvt.png">
   <img id="blkhdo" style="display:none;" src="bulkhead_open.png">
@@ -15,7 +16,7 @@
   <body onload="init()">
     <div id="overlay"  ></div>
     <div class="placed" id="screen1" onclick="focusPrompt()">
-      <div id="display" style="display:none;">
+      <div id="display">
         <ul id="display_content">
         </ul>
       </div>
@@ -25,13 +26,10 @@
       </div>
       <div id="menu">
         <div class ="game_title" id="game_title"><h1>NULL Space</h1></div>
-        <div class="menu_button"  onclick="loadEpisode(0)">Episode I (no code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(1)" style="color:yellow;">Episode II (code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(2)" style="color:yellow;">Episode III (code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(3)" style="color:yellow;">Episode IV (code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(4)" style="color:yellow;">Episode V (code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(5)" style="color:yellow;">Episode VI (code needed)</div>
-        <div class="menu_button"  onclick="loadEpisode(6)" style="color:yellow;">Episode VII (code needed)</div>
+        <div class="menu_button"  onclick="loadEpisode(0)">Episode I: Catch your breath</div>
+        <div class="menu_button"  onclick="loadEpisode(1)" style="color:yellow;">Episode II: Build more pylons</div>
+        <div class="menu_button"  onclick="loadEpisode(2)" style="color:yellow;">Episode III: I feel gassy</div>
+        <div class="menu_button"  onclick="loadEpisode(3)" style="color:yellow;">Episode IV: Get out of dodge</div>
         <div class="menu_button" id="exit_menu_button" style="display: none;" onclick="exitMenu()">Exit Menu</div>
       </div>
     </div>

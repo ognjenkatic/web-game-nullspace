@@ -60,7 +60,7 @@ class FS{
 
 class Machine{
 
-    constructor(terminalColor,user="sully",ip="0.0.0.0",name="Unknown"){
+    constructor(terminalColor,user="sully",ip="0.0.0.0",name="Unknown",isHackable = false){
         this.state = "OK";
         this.fileSystem = new FS(user);
         this.currentUser = user;
@@ -71,6 +71,7 @@ class Machine{
         this.commandStack = [];
         this.commandStackIndex = 0;
         this.terminalColor = terminalColor;
+        this.isHackable = isHackable;
     }
 
     addProgram(program){
@@ -446,6 +447,9 @@ class AnalysisMinigame{
 
     }
 
+    stop(){
+
+    }
     substitute(tar,sub){
         tar = tar.toUpperCase();
         sub = sub.toUpperCase();
@@ -471,7 +475,7 @@ class AnalysisMinigame{
 }
 
 class SudokuMinigame{
-    constructor(initial,solve,xname,yname,successCallback){
+    constructor(initial,solve,xname,yname,successCallback,failCallback,maxAttempts){
         this.initial = initial;
         this.solve = solve;
         this.current = initial;
@@ -480,8 +484,13 @@ class SudokuMinigame{
         this.attempts = 0;
         this.isCompleted = false;
         this.successCallback = successCallback;
+        this.failCallback = failCallback;
+        this.maxAttempts = maxAttempts;
     }
 
+    stop(){
+
+    }
     reset(){
         this.current = this.initial;
         this.isCompleted = false;
@@ -509,14 +518,16 @@ class SudokuMinigame{
             if (value == cv){
                 this.current[c2] = this.current[c2].replaceAt(2*c1,value);
                 return "Grid successfully updated!\n\n"+this.render();
+            } else{
+                ++this.attempts;
+                if (this.attempts >this.maxAttempts)
+                    gameOver(["BOOOOOOOooooooooooooooooooOOoooOOOM"]);
+                return "Grid malfunction, charge buildup "+this.attempts+"GWatt\nDanger: Too much charge build-up could trigger a cascade reaction!";
+
             }
-            return "Grid malfunction, charge buildup "+(++this.attempts)+"GWatt\nDanger: Too much charge build-up could trigger a cascade reaction!";
         } catch{
             return "Invalid parameters, expected something like: updgrd h4 5";
         }
-
-        
-        
     }
 
     checkIfSolves(){
@@ -628,7 +639,7 @@ class TypingMinigame{
             target.innerHTML += string[this.hackIndex++];
             
             currentScreen.scrollToEnd();
-            //playSound();
+            playSound();
             await setTimeout(
                 function() 
                 {
@@ -849,20 +860,23 @@ class InteractiveScreen{
     setState(state){
         var input = document.getElementById("prompt_input");
         var parent = input.parentNode;
-
+        var retval = retval = "No known vulnerabilities for this machine.";
 
         if(state == "hacking" && currentMinigame){
-            currentMachine.state = "hacking";
-            currentMinigame.reset();
-            var cln = input.cloneNode();
-            cln.addEventListener("keyup",this.fetchHackInput);
-            parent.replaceChild(cln,input);
-            cln.focus();
-            cln.value = "";
-            currentMinigame.start();
-            document.getElementById("screen1").style.backgroundColor = "rgb(40,0,0)";
-            document.getElementById("display_content").style.opacity = "0.5";
-            document.getElementById("prompt").style.opacity = "0.5";
+            if(currentMachine && currentMachine.isHackable) {
+                currentMachine.state = "hacking";
+                currentMinigame.reset();
+                var cln = input.cloneNode();
+                cln.addEventListener("keyup",this.fetchHackInput);
+                parent.replaceChild(cln,input);
+                cln.focus();
+                cln.value = "";
+                currentMinigame.start();
+                document.getElementById("screen1").style.backgroundColor = "rgb(40,0,0)";
+                document.getElementById("display_content").style.opacity = "0.5";
+                document.getElementById("prompt").style.opacity = "0.5";
+                retval = "Starting RFE exploitation framework!\n\nSpawning new interactive shell...\nAccessing proxy...\nWaiting for instructions...\n\n";
+            } 
         }
         else if (state == "OK"){
             if(currentMinigame){
@@ -876,7 +890,11 @@ class InteractiveScreen{
             document.getElementById("display_content").style.opacity = "1";
             document.getElementById("prompt").style.opacity = "1";
             cln.focus();
+
+            retval = "Dropping into terminal."
         }
+
+        return retval;
     }
 
     scrollToEnd(){
@@ -988,8 +1006,7 @@ class InteractiveScreen{
         var args = splitInput.slice(1);
 
         if(cmnd == "hack"){
-            currentScreen.setState("hacking");
-            return "Starting RFE exploitation framework!\n\nSpawning new interactive shell...\nAccessing proxy...\nWaiting for instructions...\n\n";
+            return currentScreen.setState("hacking");
         } else
         {
             return currentMachine.runProgram(cmnd,args);
@@ -1210,16 +1227,16 @@ class Radar{
             }
         }
     }
-    animateEntity(tag,tarx,tary){
+    animateEntity(tag,tarx,tary,speed = 1){
         for(var i=0;i<this.entities.length;i++){
             if(this.entities[i].tag == tag){
                 if(this.entities[i].x != tarx || this.entities[i].y != tary){
-                    this.entities[i].x += Math.sign(tarx - this.entities[i].x);
-                    this.entities[i].y += Math.sign(tary - this.entities[i].y);
+                    this.entities[i].x += speed*(Math.sign(tarx - this.entities[i].x));
+                    this.entities[i].y += speed*(Math.sign(tary - this.entities[i].y));
                     window.requestAnimationFrame(
                         function(){
                             radar.bcdraw_clear();
-                            radar.animateEntity(tag,tarx,tary);
+                            radar.animateEntity(tag,tarx,tary,speed);
                             radar.drawEntities();
                         }
                     );
@@ -1322,8 +1339,7 @@ class Scene{
         messageManager.chat = this.conversation;
         messageManager.chatIndex = 0;
         messageManager.progressChat();
-
-
+        currentScreen.setInputBlocking(true);
     }
 }
 
@@ -1365,17 +1381,28 @@ class Episode{
     init(){
 
         if(radar){
+            
+            radar.alerted = false;
+            radar.entities = [];
             radar.bcdraw_clear();
+        }else
+            radar = new Radar(10,2);
+        if(hud){
+            hud.hideHUD();
+        } else {
+            hud = new HUD();
+            hud.drawHUD();
         }
-        radar = new Radar(10,2);
-        hud = new HUD();
-        hud.drawHUD();
         messageManager = new MessageManager();
         currentMachine = new Machine();
         currentScreen = new InteractiveScreen();
         currentScreen.setState("OK");
         this.currScene.init();
         document.title = this.title;      
+        if (audio_b){
+            audio_b.loop = true;
+            audio_b.play();
+        }
     }
 }
 
@@ -1493,11 +1520,12 @@ class MessageManager{
                 messageManager.printMessage(messageManager.chat[messageManager.chatIndex++],messageManager.printSpeed);
             } else {
                 messageManager.closeMessages();
+                if (currentScreen)
+                        currentScreen.setInputBlocking(false);
                 if (messageManager.callback){
                     var cb = messageManager.callback;
                     messageManager.callback = null;
                     cb();
-                    console.log("NULLING CALLBACK at call "+lcal);
                     
                 }
             }
@@ -1604,18 +1632,16 @@ function bootstrapStory(){
                            
                             function() {
                                 radar.bcdraw_clear();
-                                var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's machine");
                                 currentNetwork = new Network();
                                 currentNetwork.machines =
                                 [
-                                    starter,
+                                    new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's machine"),
                                 ];
-                                connectToMachine(starter);
+                                connectToMachine(currentNetwork.machines[0]);
                                 currentMachine.touch("sully_064.log",
                                 [
-                                    "(Sullivan: Brush up on MK41 carriers for mission"
+                                    "(Sullivan: Brush up on MK41 carriers for mission)"
                                 ]);;
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(
                                     function(){
                                         story.completeCondition("briefing_complete");
@@ -1664,9 +1690,8 @@ function bootstrapStory(){
                         [
                             function(){
                                 currentNetwork.machines.push(
-                                    new Machine("rgb(53, 17, 39)","james","192.168.0.10","Bulkhead terminal")
+                                    new Machine("rgb(53, 17, 39)","james","192.168.0.10","Bulkhead terminal",true)
                                 )
-                                currentScreen.setInputBlocking(false);
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
                             }
@@ -1695,24 +1720,18 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentMinigame = new TypingMinigame(1,numbers,10,10,
+                                currentMinigame = new TypingMinigame(1,words,10,10,
                                     function(){
                                         story.completeCondition("hack_t19");
                                     },
                                     function(){
                                         console.log("Hack failed");
-                                        currentMachine.cls();
-                                        currentScreen.setInputBlocking(true);
-                                        currentScreen.hide();
-                                        menu.display();
-                                        messageManager.chat = [
+                                        gameOver( [
                                             "Sgt Whitcomb: You incompetent fool!",
                                             "This is mission is over, everybody back to the ship",
-                                        ]
-                                        messageManager.chatIndex = 0;
-                                        messageManager.progressChat();
+                                        ]);
                                         
-                                    },true);
+                                    },false);
                             }
                         ],
                         [
@@ -1728,6 +1747,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
+                                });
                                 console.log("Setting up scene 4");
                                 setTimeout(
                                     function(){
@@ -1785,8 +1807,9 @@ function bootstrapStory(){
                         [
                             function(){
                                 messageManager.setCallback(
+                                    
                                     function(){
-                                        
+                                        currentScreen.setInputBlocking(true);
                                         setTimeout(()=>{
                                             story.completeCondition("reset_system");
                                         },8000);
@@ -1839,7 +1862,7 @@ function bootstrapStory(){
                         [
                             function(){
                                 currentNetwork.machines.push(
-                                    new Machine("rgb(0, 33, 86)","Jake","192.168.0.14","Environmentals terminal")
+                                    new Machine("rgb(0, 33, 86)","Jake","192.168.0.14","Environmentals terminal",true)
                                 );
                             }
                             
@@ -1860,7 +1883,6 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentMachine.runProgram("cls");
                                 currentMinigame = new TypingMinigame(1,words,20,10,
                                     function(){
                                         story.completeCondition("hack_t14");
@@ -1953,7 +1975,7 @@ function bootstrapStory(){
                             function(){
                                 radar.bcdraw_clear();
                                 var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
-                                var engin = new Machine("rgb(112, 76, 0)","Norton","192.168.0.21","Generator terminal");
+                                var engin = new Machine("rgb(112, 76, 0)","Norton","192.168.0.21","Generator terminal",true);
                                 engin.touch("norton_067.log",["I've been gettin into cryptography alot lately. These ancient criptographic algorithms can be fun, even if not secure at all."]);
                                 engin.touch("norton_068.log",["I think im might be fun to leave the daily rot-ated code to Jim from the next shift in crypto form, he loves pranking others, lets see if he likes it like he does mpzozapjrz."]);
                                 currentNetwork = new Network();
@@ -1963,7 +1985,6 @@ function bootstrapStory(){
                                     engin
                                 ];
                                 connectToMachine(starter);
-                                currentScreen.setInputBlocking(true);
                                 setTimeout(()=>{
                                     radar.animateEntity("Sgt Whitcomb",360,353);
                                     setTimeout(()=>{
@@ -1977,6 +1998,9 @@ function bootstrapStory(){
                                 radar.animateEntity("Sgt Whitcomb",405,55);
                                 radar.animateEntity("Pvt Johnson",550,75);
                                 radar.animateEntity("Pvt Blake",410,75);
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
+                                });
                             }
                         ],
                         [
@@ -2019,9 +2043,6 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                messageManager.setCallback(()=>{
-                                    currentScreen.setInputBlocking(false);
-                                });
                             }
                         ],
                         [
@@ -2062,7 +2083,7 @@ function bootstrapStory(){
 
                                 )
 
-                                currentMinigame = new TypingMinigame(3,words,60,10,
+                                currentMinigame = new TypingMinigame(3,words,80,15,
                                     function(){
                                         story.completeCondition("initialize_generator");
                                         currentScreen.appendCommandResult("Code accepted\nGenerator initialized\nPrivileged access granted.\nNew programs available.");
@@ -2216,7 +2237,7 @@ function bootstrapStory(){
                                 radar.drawEntities();
                                 messageManager.setCallback(()=>{
                                     
-                                
+                                    currentScreen.setInputBlocking(true);
                                     radar.animateEntity("Pvt Blake",730,160);
                                     setTimeout(()=>{
                                         radar.animateEntity("Pvt Wyatt",730,141);
@@ -2234,8 +2255,6 @@ function bootstrapStory(){
                                     setTimeout(()=>{
                                         story.completeCondition("exit_room");
                                     },10000);
-                                    radar.bcdraw_clear();
-                                    radar.drawEntities();
                                 });
                             }
                         ],
@@ -2280,7 +2299,7 @@ function bootstrapStory(){
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
                                 var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
-                                var secu = new Machine("rgb(73, 0, 71)","Scott","192.168.0.22","Security terminal");
+                                var secu = new Machine("rgb(73, 0, 71)","Scott","192.168.0.22","Security terminal",true);
                                 currentNetwork = new Network();
                                 currentNetwork.machines =
                                 [
@@ -2299,11 +2318,9 @@ function bootstrapStory(){
                                         ])
                                     },true);
                                 
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Pvt Johnson",62,210);
                                     connectToMachine(currentNetwork.machines[1]);
-                                    currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
                                 });
 
@@ -2356,11 +2373,9 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Pvt Blake",61,112);
                                     currentScreen.setState("hacking");
-                                    currentScreen.setInputBlocking(false);
                                 });
                             }
                         ],
@@ -2393,10 +2408,8 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Pvt Wyatt",230,211);
-                                    currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
                                 });
                             }
@@ -2429,9 +2442,7 @@ function bootstrapStory(){
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
                                     },true);
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
-                                    currentScreen.setInputBlocking(false);
                                     radar.animateEntity("Sgt Whitcomb",230,113);
                                     currentScreen.setState("hacking");
                                 });
@@ -2469,9 +2480,7 @@ function bootstrapStory(){
                                     function(){
                                         // not so dramatic
                                     },false);
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
-                                    currentScreen.setInputBlocking(false);
                                     currentScreen.setState("hacking");
                                 });
                                 
@@ -2545,7 +2554,6 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentScreen.setInputBlocking(true);
                                 currentNetwork.machines.push(new Machine("rgb(0, 62, 72)","Hammet","192.168.0.25"));
                                 connectToMachine(currentNetwork.machines[2]);
                                 currentNetwork.machines[2].touch("hammet_069.log",["CIM HADDTM: MHOL OL CAIMAOF HADDTM GY MHT F.L.W. KADLTL LITAQOFU. ET AKT ROLIAMCHTR GF AF TLCGKM DOLLOGF MG IKGXORT DOSOMAKB LWIIGKM MG MHT CGSGFB LHOI HTAROFU MGEAKRL MHT ALMTKGOR ZTSM A-482.",
@@ -2598,9 +2606,6 @@ function bootstrapStory(){
                                         return currentMinigame.substitute(arg[0][0],arg[0][1]);
                                     }
                                 ));
-                                messageManager.setCallback(()=>{
-                                    currentScreen.setInputBlocking(false);
-                                })
                             }
                         ],
                         [
@@ -2637,7 +2642,6 @@ function bootstrapStory(){
                         ],
                         [
                             function (){
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
                                     story.completeCondition("read_convo");
                                 });
@@ -2666,7 +2670,7 @@ function bootstrapStory(){
                             function(){
                                 messageManager.setCallback(function(){
                                     console.log("ENDING");
-                                    
+                                    currentScreen.setInputBlocking(true);
                                     radar.animateEntity("Sgt Whitcomb",582,365);
                                     radar.animateEntity("Pvt Johnson",450,380);
                                     radar.animateEntity("Pvt Blake",490,365);
@@ -2714,28 +2718,50 @@ function bootstrapStory(){
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
                                 var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
-                                var secu = new Machine("rgb(73, 0, 71)","Scott","192.168.0.22","Security terminal");
                                 currentNetwork = new Network();
                                 currentNetwork.machines =
                                 [
-                                    starter,
-                                    secu
+                                    starter
                                 ];
                               
                                 connectToMachine(currentNetwork.machines[0]);
-                                currentScreen.setInputBlocking(true);
 
                                 messageManager.setCallback(()=>{
+                                    radar.animateEntity("Pvt Blake",30,250);
+                                    radar.animateEntity("Pvt Johnson",30,280);
+                                    radar.animateEntity("Pvt Wyatt",130,280);
+                                    radar.animateEntity("Sgt Whitcomb",120,250);
                                     setTimeout(() => {
                                         story.completeCondition("walk_into_room");
-                                    }, 100);
+                                    }, 3000);
                                 });
                             }
                         ],
                         [
-                            // set up rooms 
+                            new RadarEntity(1,390,"bulkhead_closed",null,0,3),
+                            new RadarEntity(150,390,"bulkhead_closed","b1",0,3),
+                            new RadarEntity(300,390,"bulkhead_closed","b2",0,3),
+                            new RadarEntity(450,390,"bulkhead_closed","b3",0,3),
+                            new RadarEntity(0,0,"bound_wall",null,0,1,30,390),
+                            new RadarEntity(0,0,"bound_wall",null,0,1,500,200),
+                            new RadarEntity(350,0,"bound_wall",null,0,1,150,380),
+                            new RadarEntity(650,0,"bound_wall",null,0,1,150,380),
+                            new RadarEntity(150,360,"bound_wall",null,0,1,350,30),
+                            new RadarEntity(0,450,"bound_wall",null,0,1,720,390),
+                            new RadarEntity(510,40,"bulkhead_closed",null,270,8),
+                            new RadarEntity(189,332,"chair",null,0,3),
+                            new RadarEntity(250,332,"chair",null,0,3),
+                            new RadarEntity(230,230,"chair",null,180,3),
+                            new RadarEntity(220,250,"console2","Captains terminal",180,2), 
+                            new RadarEntity(30,230,"junk","Officer James",0,1.5),
+                            new RadarEntity(250,221,"junk","Cpt Hammet",0,1.5),
+                            new RadarEntity(262,316,"junk","Officer Norton",0,1.5),
+                            new RadarEntity(120,400,"sargeant","Sgt Whitcomb",0,1.5),
+                            new RadarEntity(30,400,"private","Pvt Blake",0,1.5),
+                            new RadarEntity(130,420,"private","Pvt Wyatt",0,1.5),
+                            new RadarEntity(30,420,"private","Pvt Johnson",0,1.5),
                         ]
-                    ),/*
+                    ),
                     new Scene(
                         [
                             new Condition("decrypt_log")
@@ -2755,7 +2781,6 @@ function bootstrapStory(){
                             // move around, set up log hacking
                             ()=>{
                                 currentNetwork.machines.push(new Machine("rgb(0, 62, 72)","Hammet","192.168.0.28"));
-                                connectToMachine(currentNetwork.machines[2]);
                                 currentNetwork.machines[2].touch("hammet_069.log",["YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",
                                 "YIM OBNNGM: MOHL HL MOG YBIMBHF LIGBQHFU. MOG OHUO KBFQHFU TCCHYGKL BKG MKBIIGR HF MOG YBIMBHF'L JWBKMGKL, BSTFU EHMO NG.",
                                 "YIM OBNNGM: EG LGG FT GLYBIG. MOHL NHUOM ZG NA SBLM GFMKA. NA NHFR HL EGBKA. NA NGNTKHGL BKG ZSWKKGR",
@@ -2831,9 +2856,16 @@ function bootstrapStory(){
                         [
                             ()=>{
                                 messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
+                                    radar.removeEntity("Pvt Blake");
+                                    radar.prependEntity(new RadarEntity(30,250,"junk","Pvt Blake",0,1.5));
+                                    radar.prependEntity(new RadarEntity(30,270,"unknown","Lieutenant Hetfield",0,1.5,30,30));
+                                    radar.animateEntity("Pvt Johnson",30,420);
+                                    radar.animateEntity("Pvt Wyatt",130,420);
+                                    radar.animateEntity("Sgt Whitcomb",120,400);
                                     setTimeout(() => {
                                         story.completeCondition("leave_room");
-                                    }, 100);
+                                    },5000);
                                 })
                             }
                         ],
@@ -2858,40 +2890,43 @@ function bootstrapStory(){
 
                         ],
                         [
-                            //start moving to the first door
-                            //hack the first door
-                            //move to the next door, close previous
-                            //hack door
-                            //move to the next door, close previous
-                            //hack the door
-                            //go to the hangar bay
+                  
                             ()=>{
-                                //hud = new HUD();
-                                //hud.drawHUD();
-                                //hud.showHUD();
-                                currentScreen.setInputBlocking(false);
-                                currentTimer = new HUDTimer(60,()=>{
-                                    gameOver([
-                                        "Sullivan: Nooooo"
-                                    ]);
-                                });
-                                hud.showHUD();
-                                currentTimer.startTimer();
+                                
                                 currentMinigame = new TypingMinigame(
-                                    1,words,20,100,()=>{
+                                    1,words,1,100,()=>{
                                         //move to door 2
+                                        radar.removeEntity("b1");
+                                        radar.prependEntity(new RadarEntity(150,390,"bulkhead_open",null,0,3));
+                                        radar.animateEntity("Pvt Johnson",180,420);
+                                        radar.animateEntity("Pvt Wyatt",270,420);
+                                        radar.animateEntity("Sgt Whitcomb",270,400);
                                         currentMinigame = new TypingMinigame(
-                                            1,numbers,20,10,()=>{
+                                            1,numbers,1,10,()=>{
                                                 // move to door 3
+                                                
+                                                radar.removeEntity("b2");
+                                                radar.prependEntity(new RadarEntity(300,390,"bulkhead_open",null,0,3));
+                                                radar.animateEntity("Pvt Johnson",350,420);
+                                                radar.animateEntity("Pvt Wyatt",430,420);
+                                                radar.animateEntity("Sgt Whitcomb",430,400);
                                                 currentMinigame = new TypingMinigame(
-                                                    1,words,20,10,()=>{
+                                                    1,words,1,10,()=>{
                                                         //move to hangar
+                                                        radar.removeEntity("b3");
+                                                        radar.prependEntity(new RadarEntity(450,390,"bulkhead_open","",0,3));
+                                                        radar.animateEntity("Pvt Johnson",520,420);
+                                                        radar.animateEntity("Pvt Wyatt",590,420);
+                                                        radar.animateEntity("Sgt Whitcomb",590,400);
+                                                        setTimeout(()=>{
+                                                            story.completeCondition("reach_shuttle");
+                                                        },3000);
                                                     },
                                                     ()=>{
 
                                                     },false
                                                 );
-                                                currentMinigame.setState("hacking");
+                                                currentScreen.setState("hacking");
                                             },()=>{
 
                                             },true
@@ -2902,6 +2937,13 @@ function bootstrapStory(){
                                     },false
                                 );
                                 messageManager.setCallback(()=>{
+                                    currentTimer = new HUDTimer(360,()=>{
+                                        gameOver([
+                                            "Sullivan: Nooooo"
+                                        ]);
+                                    });
+                                    hud.showHUD();
+                                    currentTimer.startTimer();
                                     currentScreen.setState("hacking");
                                 });
                                 
@@ -2914,20 +2956,35 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-
+                            new Condition("weld_door")
                         ],
                         [
                             "Sgt Whitcomb: Okay, were entering the hangar bay. I see the dock!",
-                            "Sgt Whitcomb: Men, weld those metal sheets to the door fast!",
-                            "Sgt Whitcomb: That will keep them occupied for a while. Board the shuttle!",
+                            "Sgt Whitcomb: Men, weld those metal sheets to the door fast, that will keep them occupied for a while."
                         ],
                         [
-                            //weld doors, start moving to shuttle
+                            ()=>{
+                                messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
+                                    radar.animateEntity("Pvt Johnson",490,420);
+                                    setTimeout(()=>{
+                                        radar.removeEntity("");
+                                        radar.prependEntity(new RadarEntity(450,390,"bulkhead_closed",null,0,3));
+                                        radar.bcdraw_clear();
+                                        radar.drawEntities();
+                                        radar.animateEntity("Pvt Johnson",520,420);
+                                        setTimeout(() => {
+                                            story.completeCondition("weld_door");
+                                        }, 3000);
+                                    },3000);
+                                })
+                                
+                            }
                         ],
                         [
 
                         ]
-                    ),*/
+                    ),
                     new Scene(
                         [
                             new Condition("hack_the_game")
@@ -2943,21 +3000,24 @@ function bootstrapStory(){
                             //show hint to sully on fail like they are flashes...inspect...console....story.completeCondition(....hack_the_game..)
                             //
                             ()=>{
-                                currentScreen.setInputBlocking(false);
-                                currentMinigame = new TypingMinigame(
-                                    5,words,100,10,()=>{
-                                        story.completeCondition("hack_the_game");
-                                    },()=>{
-                                        gameOver([
-                                            "(Flashing vision: story.completeCondition('hack_the_game');)",
-                                            "(Sullivan: What, what does that mean?! I...i don't understand...where..)",
-                                            "(Voice: Reach out into the very fabric of our world and bend it to your will!)",
-                                            "(Sullivan: What?! What world, what is this!? The world isnt something i can inspect and view its source or debug with a console!"
-                                        ]);
-                                    }
-                                );
+
+                                
                                 messageManager.setCallback(()=>{
-                                    currentScreen.setInputBlocking(false);
+                                    radar.animateEntity("Pvt Johnson",520,-10,0.1);
+                                    radar.animateEntity("Pvt Wyatt",590,-10,0.01);
+                                    radar.animateEntity("Sgt Whitcomb",590,-10,0.01);
+                                    currentMinigame = new TypingMinigame(
+                                        5,words,100,10,()=>{
+                                            story.completeCondition("hack_the_game");
+                                        },()=>{
+                                            gameOver([
+                                                "(Flashing vision: story.completeCondition('hack_the_game');)",
+                                                "(Sullivan: What, what does that mean?! I...i don't understand...where..)",
+                                                "(Voice: Reach out into the very fabric of our world and bend it to your will!)",
+                                                "(Sullivan: What?! What world, what is this!? The world isnt something i can inspect and view its source or debug with a console!"
+                                            ]);
+                                        }
+                                    );
                                     currentScreen.setState("hacking");
                                 })
                             }
@@ -2990,48 +3050,39 @@ function bootstrapStory(){
                 ], "Get out of dodge!","66842"
             ),
             new Episode(
-                new Scene
-                (
-                    [
-
-                    ],
-                    [
-                        //dev chat
-                    ],
-                    [
-                        //after read back to main menu
-                    ],
-                    [
-
-                    ]
-                ),"Fourth wall","23154"
+                [
+                    new Scene
+                    (
+                        [
+    
+                        ],
+                        [
+                            "Ognjen: Thanks for playing the game and thanks to gynvael.coldwind.pl for organising it.",
+                            "Ognjen: It was a great learning experience if not a great game:)",
+                            "Ognjen: Thanks to my friend Vlado for all the help with design ideas, the story and art."
+                        ],
+                        [
+                            ()=>{
+                                
+                                messageManager.setCallback(()=>{
+                                    gameOver([
+                                        "Going back to main menu."
+                                    ])
+                                })
+                            }
+                        ],
+                        [
+                            new RadarEntity(250,200,"junk","Ognjen",0,3),
+                            new RadarEntity(500,200,"junk","Vlado",0,3)
+                        ]
+                    )
+                ]
+                ,"Fourth wall","23154"
             )
         ]
     )
 
    
-}
-
-function endMovement(){
-    story.completeCondition("door_reached");
-}
-function moveSgt(re){
-    radar.bcdraw_clear();
-    if(!re){
-        var re = new RadarEntity(50,50,"marine","Sgt Black");
-    }
-
-    re.x++;
-    if(re.x > 200){
-        endMovement();
-        return;
-    }
-    radar.drawEntities([re]);
-    window.requestAnimationFrame(
-        function(){
-            moveSgt(re);
-        }
-    )
 }
 
 function toggleMenu()
@@ -3072,6 +3123,7 @@ function connectToMachine(machine){
     currentMachine = machine;
     currentMachine.cls();
     if (currentScreen){
+        currentScreen.appendCommandResult("Connection established.\nPulling packages...\Pulled packages: Sully's toolkit.");
         currentScreen.setColor(machine.terminalColor);
         currentScreen.updatePromptInfo();
     }
@@ -3113,7 +3165,8 @@ var story;
 var menu;
 var currentNetwork;
 var currentTimer;
-//var audio = new Audio('type.ogg');
+var audio = new Audio('type.ogg');
+var audio_b = new Audio('bkgrd.ogg');
 // Main
 function init(){
     enterMenu();

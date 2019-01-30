@@ -216,16 +216,16 @@ class Radar{
             }
         }
     }
-    animateEntity(tag,tarx,tary){
+    animateEntity(tag,tarx,tary,speed=1){
         for(var i=0;i<this.entities.length;i++){
             if(this.entities[i].tag == tag){
                 if(this.entities[i].x != tarx || this.entities[i].y != tary){
-                    this.entities[i].x += Math.sign(tarx - this.entities[i].x);
-                    this.entities[i].y += Math.sign(tary - this.entities[i].y);
+                    this.entities[i].x = this.entities[i].x+speed*(Math.sign(tarx - this.entities[i].x));
+                    this.entities[i].y = this.entities[i].y+speed*(Math.sign(tary - this.entities[i].y));
                     window.requestAnimationFrame(
                         function(){
                             radar.bcdraw_clear();
-                            radar.animateEntity(tag,tarx,tary);
+                            radar.animateEntity(tag,tarx,tary,speed);
                             radar.drawEntities();
                         }
                     );
@@ -349,7 +349,37 @@ var currentNetwork;
 
 function doAnimations(){
     
-   
+    
+
+
+    radar.animateEntity("Pvt Blake",30,250,0.1);
+    radar.animateEntity("Pvt Johnson",30,280);
+    radar.animateEntity("Pvt Wyatt",130,280);
+    radar.animateEntity("Sgt Whitcomb",120,250);
+    setTimeout(()=>{
+        radar.animateEntity("Pvt Blake",30,400);
+        radar.animateEntity("Pvt Johnson",30,420);
+        radar.animateEntity("Pvt Wyatt",130,420);
+        radar.animateEntity("Sgt Whitcomb",120,400);
+    },5000);
+    setTimeout(()=>{
+        radar.animateEntity("Pvt Blake",180,400);
+        radar.animateEntity("Pvt Johnson",180,420);
+        radar.animateEntity("Pvt Wyatt",270,420);
+        radar.animateEntity("Sgt Whitcomb",270,400);
+    },10000);
+    setTimeout(()=>{
+        radar.animateEntity("Pvt Blake",350,400);
+        radar.animateEntity("Pvt Johnson",350,420);
+        radar.animateEntity("Pvt Wyatt",430,420);
+        radar.animateEntity("Sgt Whitcomb",430,400);
+    },17000);
+    setTimeout(()=>{
+        radar.animateEntity("Pvt Blake",520,400);
+        radar.animateEntity("Pvt Johnson",520,420);
+        radar.animateEntity("Pvt Wyatt",590,420);
+        radar.animateEntity("Sgt Whitcomb",590,400);
+    },21000);
     radar.bcdraw_clear();
     radar.drawEntities();
 }
@@ -384,49 +414,28 @@ function init(){
     radar.mcdraw_lines(3,0);
     radar.bcdraw_clear();
     radar.entities = [
-        new RadarEntity(578,108,"console2","Bridge console",0,1.5),
-        new RadarEntity(538,108,"console2",null,0,1.5),
-        new RadarEntity(498,108,"console2",null,0,1.5),
-        new RadarEntity(458,108,"console2",null,0,1.5),
-        new RadarEntity(332,230,"console2","Security console",0,1.5),
-        new RadarEntity(332,250,"chair",null,0,2.5),
-        new RadarEntity(538,128,"chair",null,0,2.5),
-        new RadarEntity(498,128,"chair",null,0,2.5),
-        new RadarEntity(458,128,"chair",null,0,2.5),
-        new RadarEntity(578,128,"chair",null,0,2.5),
-        new RadarEntity(666,250,"chair",null,0,2.5),
-        new RadarEntity(480,226,"chair",null,0,3),
-        new RadarEntity(520,226,"chair",null,0,3),
-        new RadarEntity(666,230,"console2","Weapons console",0,1.5),
-        new RadarEntity(0,184,"bound_wall",null,0,1,30,400),
-        new RadarEntity(0,0,"bound_wall",null,0,1,30,120),
-        new RadarEntity(0,50,"bound_wall",null,0,1,720,50),
-        new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
-        new RadarEntity(290,0,"bound_wall",null,0,1,32,120),
-        new RadarEntity(290,183,"bound_wall",null,0,1,35,420),
-        new RadarEntity(700,0,"bound_wall",null,0,1,30,350),
-        new RadarEntity(0,450,"bound_wall",null,0,1,720,350),
-        new RadarEntity(0,240,"bound_wall",null,0,1,320,400),
-        new RadarEntity(0,125,"bulkhead_closed",null,0,3),
-        new RadarEntity(293,125,"bulkhead_closed","",0,3),
-        new RadarEntity(170,130,"sargeant","Sgt Whitcomb",0,1.5),
-        new RadarEntity(60,130,"private","Pvt Blake",0,1.5),
-        new RadarEntity(180,160,"private","Pvt Wyatt",0,1.5),
-        new RadarEntity(60,160,"private","Pvt Johnson",0,1.5),
-        new RadarEntity(60,230,"sun","L1",0,1,15,15),
-        new RadarEntity(60,90,"sun","L2",0,1,15,15),
-        new RadarEntity(230,230,"sun","L3",0,1,15,15),
-        new RadarEntity(230,90,"sun","L4",0,1,15,15),
-    ];
-    
-        
+        new RadarEntity(1,390,"bulkhead_closed",null,0,3),
+        new RadarEntity(150,390,"bulkhead_closed",null,0,3),
+        new RadarEntity(300,390,"bulkhead_closed",null,0,3),
+        new RadarEntity(450,390,"bulkhead_closed",null,0,3),
+        new RadarEntity(0,0,"bound_wall",null,0,1,30,390),
+        new RadarEntity(0,0,"bound_wall",null,0,1,500,200),
+        new RadarEntity(350,0,"bound_wall",null,0,1,150,380),
+        new RadarEntity(650,0,"bound_wall",null,0,1,150,380),
+        new RadarEntity(150,360,"bound_wall",null,0,1,350,30),
+        new RadarEntity(0,450,"bound_wall",null,0,1,720,390),
+        new RadarEntity(120,400,"sargeant","Sgt Whitcomb",0,1.5),
+        new RadarEntity(30,400,"private","Pvt Blake",0,1.5),
+        new RadarEntity(130,420,"private","Pvt Wyatt",0,1.5),
+        new RadarEntity(30,420,"private","Pvt Johnson",0,1.5),
+        new RadarEntity(510,40,"bulkhead_closed",null,270,8),
+        new RadarEntity(189,332,"chair",null,0,3),
+        new RadarEntity(250,332,"chair",null,0,3),
+        new RadarEntity(230,230,"chair",null,180,3),
+        new RadarEntity(220,250,"console2","Captains terminal",180,2),
+    ];  
     radar.drawEntities();
     doAnimations();
-    
-
-    
-    
-
 }
 
 
