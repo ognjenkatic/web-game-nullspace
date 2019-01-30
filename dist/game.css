@@ -251,6 +251,31 @@ input:focus {
   outline: none;
 }
 
+#convos,#objectives{
+  color:white;
+  width:715px;
+  height:450px;
+  overflow: scroll;
+  padding:5px;
+  padding-top: 30px;
+  display:none;
+}
+#rselect {
+  left:167px;
+}
+#oselect{
+  left:95px;
+}
+
+
+#oselect,#cselect,#rselect{
+  background-color:#00ff00;
+  border-radius: 3px;
+  font-size: 15px;
+  position: absolute;
+  margin:5px;
+  z-index: 1006;
+}
 #HUD_timer{
   color:white;
   font-size:80px;

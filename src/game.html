@@ -33,10 +33,15 @@
         <div class="menu_button" id="exit_menu_button" style="display: none;" onclick="exitMenu()">Exit Menu</div>
       </div>
     </div>
-    <div class="placed" id="screen2"  >
+    <div class="placed" id="screen2">
       <canvas class="placed" width="720x" height="480px" id="bg_canvas"></canvas>
       <canvas class="placed" width="720px" height="480px" id="mg_canvas"></canvas>
       <canvas class="placed" width="720px" height="480px" id="fg_canvas" ></canvas>
+      <div id="oselect" onclick="toggleObjectives()">Objectives</div>
+      <div id="cselect" onclick="toggleConvos()">Conversations</div>
+      <div id="rselect" onclick="toggleRadar()">Radar</div>
+      <pre id="objectives"></pre>
+      <pre id="convos"></pre>
     </div>
     <div id="fall_container">
         

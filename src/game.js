@@ -66,7 +66,6 @@ class Machine{
         this.currentUser = user;
         this.ip = ip;
         this.name = name;
-        this.services = [];
         this.programs = [];
         this.commandStack = [];
         this.commandStackIndex = 0;
@@ -124,9 +123,10 @@ class Machine{
                 retval += "ls\t\t: lists the contents of the current directory.\n";
                 retval += "pwd\t\t: displays the current working directory.\n";
                 retval += "ifconfig\t: displays the network configuration of the machine.\n";
-                retval += "cd\t\t: changes the current working directory. The first argument is the name of the directory.\n"
+                retval += "cd\t\t: changes the current working directory. The first argument is the name of the directory.\n";
                 retval += "cls\t\t: clear the screen.\n";
-
+                retval += "tunnel\t\t: connect to a remote machine. The first argument is it's address.\n";
+                retval += "logread\t\t: read the contents of a log. The first argument is the file name.\n";
                 for(var i=0;i<this.programs.length;i++){
                     retval += this.programs[i].name+"\t\t: "+this.programs[i].description+"\n";
                 }
@@ -216,27 +216,7 @@ class Machine{
         return "unknown command";
         
     }
-    addService(service){
-        this.services.push(service);
-    }
 
-    removeService(name){
-        for(var i=0;i<this.services.length;i++){
-            if(this.services[i].name == name){
-                this.services.splice(i,1);
-                return;
-            }
-        }
-    }
-
-    setServiceState(name,running){
-        for(var i=0;i<this.services.length;i++){
-            if(this.services[i].name == name){
-                this.services[i].running = running;
-                return;
-            }
-        }
-    }
 
     cls(){
         var content = document.getElementById("display_content");
@@ -341,20 +321,7 @@ class Program{
         return this.callback(args);
     }
 }
-class Service{
-    constructor(port,name,running,callback){
-        this.port = port;
-        this.name = name;
-        this.running = running;
-        this.callback = callback;
-    }
 
-    call(args){
-        if(this.running){
-            return this.callback(args);
-        }
-    }
-}
 class Network{
     constructor(machines=[]){
         this.machines = machines;
@@ -788,12 +755,15 @@ class TypingMinigame{
         this.drawProgressHUD();
         this.refresh();
         this.gameStartTime = Date.now();
+        toggleRadar();
+        hideMenu();
     }
 
     stop(){
         this.isRunning = false;
         this.destroyHUD();
         hud.hideHUD();
+        showMenu();
     }
 
     
@@ -1336,6 +1306,9 @@ class Scene{
             for(var i =0;i<this.inits.length;i++){
                 this.inits[i]();
             }
+        toggleRadar();
+        setConvos(this.conversation);
+        setObjs(this.conditions);
         messageManager.chat = this.conversation;
         messageManager.chatIndex = 0;
         messageManager.progressChat();
@@ -1393,6 +1366,7 @@ class Episode{
             hud = new HUD();
             hud.drawHUD();
         }
+
         messageManager = new MessageManager();
         currentMachine = new Machine();
         currentScreen = new InteractiveScreen();
@@ -1450,6 +1424,7 @@ class Story{
     }
 
 }
+
 
 
 var call =0;
@@ -1510,9 +1485,11 @@ class MessageManager{
         var mb = document.getElementById("message_box");
         if(mb != null)
             mb.remove();
+        showMenu();
     }
 
     progressChat(){
+        hideMenu();
         var lcal = ++call;
         if (!messageManager.printingMessage){
             console.log("CHAT INDEX IS "+messageManager.chatIndex+" and l is "+messageManager.chat.length+" at call"+lcal);
@@ -1619,14 +1596,10 @@ function bootstrapStory(){
                         ],
                         [
                             "HIGH COMMAND: Greetings mr. Sullivan, as you are most probably aware of by now, an unmarked abandoned space ship has been located at the edge of our solar system.",
-                            "HIGH COMMAND: Its origins are unknown, but technology bears resemblance to our own.",
                             "HIGH COMMAND: We suspect it belongs to a rogue fraction of human kind but further investigation is needed in order to determine its true origins and its purpose.",
-                            "HIGH COMMAND: For that reason a recon task force has been assigned to search the ship for any survivors or piece of information that could shed light on the whole scenario.",
-                            "HIGH COMMAND: You will be in charge of assisting the deployed team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
-                            "HIGH COMMAND: We cannot give you any precise guidelines as we don't know what to expect, but we count on your adaptability and improvisation skills. You are, after all, one of the finest.",
+                            "HIGH COMMAND: You will be in charge of assisting the investigating team remotely with all the tech related business - override security protocols, bringing ships systems into operational state, hack into data cores, etc.",
+                            "HIGH COMMAND: We cannot give you any precise guidelines as we don't know what to expect.",
                             "HIGH COMMAND: Soldiers are expendable, information is invaluable. make us proud!",
-                            "(Sullivan: Well that sounded as cheerfull as can be...)",
-                            "(Sullivan: The marines should be done setting up the remote access box by now, time to get to work)"
                         ],
                         [
                            
@@ -1638,10 +1611,6 @@ function bootstrapStory(){
                                     new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's machine"),
                                 ];
                                 connectToMachine(currentNetwork.machines[0]);
-                                currentMachine.touch("sully_064.log",
-                                [
-                                    "(Sullivan: Brush up on MK41 carriers for mission)"
-                                ]);;
                                 messageManager.setCallback(
                                     function(){
                                         story.completeCondition("briefing_complete");
@@ -1675,11 +1644,10 @@ function bootstrapStory(){
                             new Condition("tunnel_192.168.0.10")
                         ],
                         [
-                            "Sgt Whitcomb: I've connected everything following the instructions you provided. The ships auxiliary terminal should be on your network.",
+                            "Sgt Whitcomb: Sullivan, everything is connected up on our end.",
                             "Sullivan: How was the landing?",
-                            "Sgt Whitcomb: Smooth, we did however puncture a greater hole in the hull than expected, but we managed to seal it off.",
-                            "Sgt Whitcomb: Once we get the life support up and running, there should be no leaking.",
-                            "Sullivan: We should get to it then. i believe you air supply is limited and exploring the whole ship is not a short task.", 
+                            "Sgt Whitcomb: We did puncture a greater hole in the hull than expected, but we managed to seal it off. Once we get the life support up and running, there should be no leaking.",
+                            "Sullivan: We should get to it then.", 
                             "Sgt Whitcomb: Agreed!",
                             "Sgt Whitcomb: We are trapped in this ships section though. Tried to pry open this door leading to life support room but its not going anywhere.",
                             "Can you try to access the control from your end?",
@@ -1788,17 +1756,10 @@ function bootstrapStory(){
                             new Condition("reset_system")
                         ],
                         [
-                            "Sgt Whitcomb: Well, it aint a pretty site but nothing is damaged as far as I can see.",
-                            "Sullivan: Whats the status of the life support systems?",
                             "Sgt Whitcomb: Both air conditioning and onboard temperature systems are not operational. Everything is flashing red.",
-                            "Sullivan: Is there anything on the diagnostics screen? Any specific error message?",
-                            "Sgt Whitcomb: Well, temp system has this:",
-                            "AIR CONDITIONING SYSTEM OFFLINE; COIL TEMPERATURE CRITICAL; EXITING INSTANCE CALLED; DETERMINING AIR CONDITIONING STATUS...",
+                            "Sgt Whitcomb: The temp system has this: AIR CONDITIONING SYSTEM OFFLINE; COIL TEMPERATURE CRITICAL; EXITING INSTANCE CALLED; DETERMINING AIR CONDITIONING STATUS...",
                             "Sullivan: Its just a failsafe shutdown. Whats going on with air systems?",
-                            "Sgt Whitcomb: It has some blue screen with a bunch of numbers. Want me to read them to you?",
-                            "Sullivan: Don't be silly. No need for that. It probably failed on switching from main power to battery backup.",
-                            "Sullivan: Listen carefully now, write it down if you have to. I need you to disconnect that machine from the power source completely.",
-                            "Sullivan: Find the red button labeled reset somewhere on the control board. Hit that button aproximatly ten times. Connect it back to power and turn it on.",
+                            "Sgt Whitcomb: It's not getting power.",
                             "Sgt Whitcomb: Oh man, the power connection is on the back, we have to move the whole goddamn thing to access it.",
                             "Sullivan: Get to it then. Let me know when you're done",
                             "(Sullivan: nothing to do but sit back and wait now...)"
@@ -1852,9 +1813,7 @@ function bootstrapStory(){
                             new Condition("tunnel_192.168.0.14")
                         ],
                         [
-                            "Sgt Whitcomb: This one should be on the network aswell now.",
-                            "Sullivan: Excellent work sarge. Whats the status?",
-                            "Sgt Whitcomb: It's stuck on some sort of error screen.",
+                            "Sgt Whitcomb: This one should be on the network aswell now, however it's stuck on some sort of error screen.",
                             "Sullivan: You did your part. The console is on the network now and i can take over.",
                             "(Sullivan: Right. I should use the tunnel command again to connect to it.)"
 
@@ -1876,8 +1835,7 @@ function bootstrapStory(){
                             new Condition("hack_t14")
                         ],
                         [
-                            "(Sullivan: Alright, I'm in...It seems the system is having problems recovering...)",
-                            "(Sullivan: Thankfully that error code indicates theres a problem with one of the auxiliary systems.)",
+                            "(Sullivan: Alright, I'm in...It seems the system is having problems recovering. However that error code indicates theres a problem with one of the auxiliary systems.)",
                             "(Sullivan: As those systems are not critical i can hack to code to bypass them entirely.)"
 
                         ],
@@ -2036,9 +1994,8 @@ function bootstrapStory(){
                         ],
                         [
                             "Sgt Whitcomb: Alright, I've added the generator terminal the network",
-                            "Sgt Whitcomb: The generator itself is completely black. I see no lights on it.",
-                            "Sgt Whitcomb: ...and i can't figure out where do you turn this on...",
-                            "Sullivan: That's because you can't simply turn it on with the flip of the switch. I'll connect to the terminal and initialize the start-up sequence."
+                            "Sgt Whitcomb: The generator itself is completely black. I see no lights on it...and i can't figure out where do you turn this on...",
+                            "Sullivan: I'll connect to the terminal and initialize the start-up sequence."
                    
                         ],
                         [
@@ -2057,9 +2014,7 @@ function bootstrapStory(){
                         ],
                         [
                             "Sullivan: The power core is stable. I Will attempt to start it up, but  have to bypass the codes first.",
-                            "Sgt Whitcomb: Sure, do your thing.",
-                            "Sgt Whitcomb: Don't know if it's of any help, but there is a note here pinned next to the terminal",
-                            "Sgt Whitcomb: It goes 'Jim - i've left defails in the engineer's log.'",
+                            "Sgt Whitcomb: Don't know if it's of any help, but there is a note here pinned next to the terminal. It goes 'Jim - i've left defails in the engineer's log.'",
                             "(Sullivan: Looks like I either have to guess the code and input it to the startseq program, or try to hack it and bypass the authentication mechanism...)",
                             "(Sullivan: This terminal is quite heavily secured so hacking the code is no easy task.)"
                         ],
@@ -2215,7 +2170,7 @@ function bootstrapStory(){
                             "Sullivan: Then we're all set. The ship is stabilized and we can proceed with searching for clues.",
                             "Sgt Whitcomb: Precisely. I really wasn't too eager to search for the unmarked vessel without having light covering all corners.",
                             "Sgt Whitcomb: We better find the ship's bridge soon. This place is so eerie that half of my squad already smells of piss.",
-                            "Sgt Whitcomb: SQUAD, MOVE OUT! Blake, start mapping this place. I want to be able to find my way back to your mothers knickers.",
+                            "Sgt Whitcomb: SQUAD, MOVE OUT!",
                             "Pvt Blake: Sir, yes sir!"
                               
                         ],
@@ -2275,22 +2230,16 @@ function bootstrapStory(){
                         [
                             "Sgt Whitcomb: Sully, we made it to the entrance of the bridge.",
                             "Sullivan: I suppose you'll find the captain's logs somewhere inside.",
-                            "Sgt Whitcomb: Yeah, that's the thing. We cannot pry open these doors.",
+                            "Sgt Whitcomb: We cannot pry open these doors.",
                             "Sgt Whitcomb: But give me a few, I'll have one of mine try and open it with MDD.",
-                            "Sgt Whitcomb: Pvt. Johnson, go ahead, give it a try.",
                             "Pvt. Johnson: Aye, sir!",
                             "...",
                             "...",
                             "Pvt. Wyatt: Sir, do you smell the gunpowder?",
                             "Sgt Whitcomb: Damnit, sulphur! Quickly, put on your helmets!",
-                            "Sgt Whutcomb: Sullivan! We triggered some safety protocol. Get us out of here!",
                             "Sullivan: No need for panic, we have time untill the acid concentration is high enough to do harm.",
-                            "(Sullivan: If i remember correctly, when they pull the lever the board computer will request a code override before permanently shutting the vents.)",
                             "Sullivan: There are four air vents we need to override. You will find them in the corners of the corridor.",
                             "Sullivan: I need you to pull the levers. Then i will poverride the automatic vent closing from my end.",
-                            "Sullivan: We have one chance at this, don't screw it up. First give me access to the system.",
-                            "Pvt Johnson: On it!",
-                            "Sullivan: Alright, I'm connected, go!",
                             "Pvt Johnson: Pulling the first one!",
                               
                         ],
@@ -3085,6 +3034,56 @@ function bootstrapStory(){
    
 }
 
+function hideAll(){
+    for(var i=0;i<document.getElementById("screen2").children.length;i++){
+        var tmp = document.getElementById("screen2").children[i];
+        if (!tmp.id.includes("select") && !tmp.id.includes("message_box"))
+            tmp.style.display = "none";
+    }
+}
+
+function hideMenu(){
+    document.getElementById("cselect").style.display = "none";
+    document.getElementById("oselect").style.display = "none";
+    document.getElementById("rselect").style.display = "none";
+}
+
+function showMenu(){
+    document.getElementById("cselect").style.display = "block";
+    document.getElementById("oselect").style.display = "block";
+    document.getElementById("rselect").style.display = "block";
+}
+function toggleRadar(){
+    this.hideAll();
+    document.getElementById("bg_canvas").style.display = "block";
+    document.getElementById("fg_canvas").style.display = "block";
+    document.getElementById("mg_canvas").style.display = "block";
+}
+
+function toggleObjectives(){
+    console.log("Hello");
+    this.hideAll();
+    document.getElementById("objectives").style.display = "block";
+}
+
+function toggleConvos(){
+    this.hideAll();
+    document.getElementById("convos").style.display = "block";
+}
+
+function setObjs(objs){
+    document.getElementById("objectives").innerHTML="";
+    for(var i=0;i<objs.length;i++){
+        document.getElementById("objectives").innerHTML += objs[i].name+"\n";
+    }
+}
+function setConvos(convos){
+    document.getElementById("convos").innerHTML="";
+    for(var i=0;i<convos.length;i++){
+        document.getElementById("convos").innerHTML+=convos[i]+"\n\n";
+    }
+}
+
 function toggleMenu()
 {
     return false;
@@ -3118,6 +3117,7 @@ function playSound(){
     audio.playbackRate = 8;
     audio.play();
 }
+
 
 function connectToMachine(machine){
     currentMachine = machine;
@@ -3170,10 +3170,7 @@ var audio_b = new Audio('bkgrd.ogg');
 // Main
 function init(){
     enterMenu();
-    
     bootstrapStory();
-    
-
 }
 
 
