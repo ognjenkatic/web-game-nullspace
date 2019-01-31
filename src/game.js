@@ -127,6 +127,7 @@ class Machine{
                 retval += "cls\t\t: clear the screen.\n";
                 retval += "tunnel\t\t: connect to a remote machine. The first argument is it's address.\n";
                 retval += "logread\t\t: read the contents of a log. The first argument is the file name.\n";
+                retval += "rfe\t\t: starts up the RFE framework used for realtime vulnerability exploitation.\n";
                 for(var i=0;i<this.programs.length;i++){
                     retval += this.programs[i].name+"\t\t: "+this.programs[i].description+"\n";
                 }
@@ -606,7 +607,7 @@ class TypingMinigame{
             target.innerHTML += string[this.hackIndex++];
             
             currentScreen.scrollToEnd();
-            playSound();
+            //playSound();
             await setTimeout(
                 function() 
                 {
@@ -975,7 +976,7 @@ class InteractiveScreen{
         var cmnd = splitInput.slice(0,1)[0];
         var args = splitInput.slice(1);
 
-        if(cmnd == "hack"){
+        if(cmnd == "rfe"){
             return currentScreen.setState("hacking");
         } else
         {
@@ -1650,7 +1651,7 @@ function bootstrapStory(){
                             "Sullivan: We should get to it then.", 
                             "Sgt Whitcomb: Agreed!",
                             "Sgt Whitcomb: We are trapped in this ships section though. Tried to pry open this door leading to life support room but its not going anywhere.",
-                            "Can you try to access the control from your end?",
+                            "Sgt Whitcomb: Can you try to access the control from your end?",
                             "Sullivan: I'm on it. give me a few seconds to connect to the remote machine...",
                             "(Sullivan: Alright, to connect to it i first need the address. I should get this using the netscan tool. After that i can establish a connection using the tunnel command)"
 
@@ -1681,16 +1682,16 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("hack_t19")
+                            new Condition("use_rfe_exploitation_framework")
                         ],
                         [
                             "Sullivan: Alright, im connected. I'll try to override the door controls remotely now"
                         ],
                         [
                             function(){
-                                currentMinigame = new TypingMinigame(1,words,10,10,
+                                currentMinigame = new TypingMinigame(1,words,10,510,
                                     function(){
-                                        story.completeCondition("hack_t19");
+                                        story.completeCondition("use_rfe_exploitation_framework");
                                     },
                                     function(){
                                         console.log("Hack failed");
@@ -1951,7 +1952,7 @@ function bootstrapStory(){
                                         radar.animateEntity("Pvt Blake",407,160);
                                         story.completeCondition("walk_over");
                                     },5000);
-                                },9000);
+                                },11000);
                                 radar.animateEntity("Pvt Wyatt",550,55);
                                 radar.animateEntity("Sgt Whitcomb",405,55);
                                 radar.animateEntity("Pvt Johnson",550,75);
@@ -3037,7 +3038,7 @@ function bootstrapStory(){
 function hideAll(){
     for(var i=0;i<document.getElementById("screen2").children.length;i++){
         var tmp = document.getElementById("screen2").children[i];
-        if (!tmp.id.includes("select") && !tmp.id.includes("message_box"))
+        if (!tmp.id.includes("select") && !tmp.id.includes("message_box") && !tmp.id.includes("HUD"))
             tmp.style.display = "none";
     }
 }
