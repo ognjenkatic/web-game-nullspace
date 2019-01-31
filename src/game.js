@@ -1,10 +1,9 @@
 // OS Code
 class FSFile{
 
-    constructor(name,permissions="755",content = null,parentDir=null,owner="root"){
+    constructor(name,content = null,parentDir=null,owner="root"){
         this.name = name;
         this.owner = owner;        
-        this.permissions = permissions;
         this.isDirectory = name.startsWith("#") ? true : false;
         this.content = content;
         this.parentDir = parentDir;
@@ -26,7 +25,7 @@ class FSFile{
 
     addDefaultChildEntries(names){
         names.forEach(name => {
-            this.childEntries.push(new FSFile(name,"755",null,this));
+            this.childEntries.push(new FSFile(name,null,this));
         });
     }
 
@@ -44,7 +43,7 @@ class FSFile{
 class FS{
     
     constructor(user){
-        this.rootDir = new FSFile("#/","755",["#bin","#boot","#dev","#etc","#home","#lib","#lost+found","#misc","#mnt","#net","#opt","#proc","#root","#sbin","#tmp","#usr","#var"]);
+        this.rootDir = new FSFile("#/",["#bin","#boot","#dev","#etc","#home","#lib","#lost+found","#misc","#mnt","#net","#opt","#proc","#root","#sbin","#tmp","#usr","#var"]);
         
 
         this.rootDir.getChildEntry("#home").addDefaultChildEntries(["#"+user]);
@@ -302,7 +301,7 @@ class Machine{
     }
 
     touch(name,content = "[binary]"){
-        var newFile = new FSFile(name,"755",content,this.fileSystem.cwd);
+        var newFile = new FSFile(name,content,this.fileSystem.cwd);
         this.fileSystem.cwd.childEntries.push(newFile);
     }
 
@@ -485,21 +484,31 @@ class SudokuMinigame{
             var cv = this.solve[c2][2*c1];
             if (value == cv){
                 this.current[c2] = this.current[c2].replaceAt(2*c1,value);
+                if (this.checkIfSolves()){
+                    this.successCallback();
+                    return "Correct grid distribution achieved.";
+                }
                 return "Grid successfully updated!\n\n"+this.render();
             } else{
                 ++this.attempts;
                 if (this.attempts >this.maxAttempts)
-                    gameOver(["BOOOOOOOooooooooooooooooooOOoooOOOM"]);
-                return "Grid malfunction, charge buildup "+this.attempts+"GWatt\nDanger: Too much charge build-up could trigger a cascade reaction!";
+                    this.failCallback();
+                return "Grid malfunction, charge buildup "+this.attempts+" GWatt\nDanger: Charge build-up of "+this.maxAttempts+" GWatt or more could trigger a cascade reaction!";
 
             }
         } catch{
-            return "Invalid parameters, expected something like: updgrd h4 5";
+            return "Invalid parameters, expected something like: 'grdupd h4 5'";
         }
     }
 
     checkIfSolves(){
-        return (this.current = this.solve);
+        for(var i=0;i<this.current.length;i++){
+            for(var j=0;j<this.current[i].length;j++){
+                if (this.current[i][j] != this.solve[i][j])
+                    return false;
+            }
+        }
+        return true;
     }
 }
 class TypingMinigame{
@@ -607,7 +616,7 @@ class TypingMinigame{
             target.innerHTML += string[this.hackIndex++];
             
             currentScreen.scrollToEnd();
-            //playSound();
+            playSound();
             await setTimeout(
                 function() 
                 {
@@ -667,7 +676,7 @@ class TypingMinigame{
 
     failType(elly){
         for(var i=0;i<this.displayedElements.length;i++){
-            if(this.displayedElements[i].innerHTML == elly.innerHTML){
+            if(this.displayedElements[i] == elly){
                 this.displayedElements[i].remove();
                 this.displayedElements.splice(i,1);
                 this.animateFailure();
@@ -756,6 +765,7 @@ class TypingMinigame{
         this.drawProgressHUD();
         this.refresh();
         this.gameStartTime = Date.now();
+        audio_b.playbackRate = 3;
         toggleRadar();
         hideMenu();
     }
@@ -765,6 +775,7 @@ class TypingMinigame{
         this.destroyHUD();
         hud.hideHUD();
         showMenu();
+        audio_b.playbackRate = 0.2;
     }
 
     
@@ -892,7 +903,7 @@ class InteractiveScreen{
         }
 
         if (currentMinigame.validateInput(input.value)){
-            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*6,40);
+            currentMinigame.writeHack(hackContent,currentMinigame.hack,currentMinigame.hackIndex+input.value.length*2,40);
             input.value = "";
 
             if (currentMinigame.targetHits<=currentMinigame.currentHits) {
@@ -1375,8 +1386,10 @@ class Episode{
         this.currScene.init();
         document.title = this.title;      
         if (audio_b){
+            audio_b.playbackRate = 0.2;
             audio_b.loop = true;
             audio_b.play();
+            
         }
     }
 }
@@ -1685,11 +1698,13 @@ function bootstrapStory(){
                             new Condition("use_rfe_exploitation_framework")
                         ],
                         [
-                            "Sullivan: Alright, im connected. I'll try to override the door controls remotely now"
+                            "Sullivan: Alright, im connected. I'll try to override the door controls remotely now",
+                            "(Sullivan: I've set up the rfe exploitation framework for this. So just running the rfe command on exploitable machines should start the process.)",
+                            "(Sullivan: I should remember to always check available commands with the help command)"
                         ],
                         [
                             function(){
-                                currentMinigame = new TypingMinigame(1,words,10,510,
+                                currentMinigame = new TypingMinigame(1,words,10,10,
                                     function(){
                                         story.completeCondition("use_rfe_exploitation_framework");
                                     },
@@ -1869,7 +1884,9 @@ function bootstrapStory(){
                             
                             function(){
                                 messageManager.setCallback(
+                                    
                                     function(){
+                                        currentScreen.setInputBlocking(true);
                                         radar.animateEntity("Sgt Whitcomb",405, 50);
                                         setTimeout(
                                             function(){
@@ -1902,6 +1919,7 @@ function bootstrapStory(){
                             function(){
                                 messageManager.setCallback(
                                     function(){
+                                        currentScreen.setInputBlocking(true);
                                         radar.animateEntity("Sgt Whitcomb",800,55);
                                         radar.animateEntity("Pvt Blake",800,75);
                                         radar.animateEntity("Pvt Wyatt",800,95);
@@ -1928,6 +1946,8 @@ function bootstrapStory(){
                             new Condition("walk_over")
                         ],
                         [
+                            "Breakpoint hit, address: BGH",
+                            "(Sullivan: Huh?!)",
                             "Sgt Whitcomb: It seems to be running on auxiliary power, we should check what's going on with the generator."
                         ],
                         [
@@ -2039,7 +2059,7 @@ function bootstrapStory(){
 
                                 )
 
-                                currentMinigame = new TypingMinigame(3,words,80,15,
+                                currentMinigame = new TypingMinigame(4,words,80,15,
                                     function(){
                                         story.completeCondition("initialize_generator");
                                         currentScreen.appendCommandResult("Code accepted\nGenerator initialized\nPrivileged access granted.\nNew programs available.");
@@ -2093,7 +2113,8 @@ function bootstrapStory(){
                             "Sgt Whitcomb: Well, changed started something. The lights are now showing yellow instead of red.",
                             "Sullivan: Yellow?! It should be working...i don...oh wait...i know what's up.",
                             "Sgt whitcomb: I thought you knew what you were doing?!",
-                            "Sullivan: Calm down, I got this. It's just that it's been a while."
+                            "Sullivan: Calm down, I got this. It's just that it's been a while.",
+                            "(Sullivan: I should remember to always check available commands with the help command.)"
                               
                         ],
                         [
@@ -2122,7 +2143,10 @@ function bootstrapStory(){
                                 ["5 6 9 7 8 2 1 4 3","2 3 4 6 1 9 8 7 5","1 7 8 4 5 3 2 9 6","7 8 3 2 6 4 9 5 1","4 9 2 5 7 1 6 3 8","6 1 5 3 9 8 7 2 4","3 4 7 1 2 6 5 8 9","9 5 1 8 3 7 4 6 2 ","8 2 6 9 4 5 3 1 7"],"generator","power",
                                 function(){
                                     story.completeCondition("distribute_power")
-                                });
+                                },
+                                ()=>{
+                                    gameOver(["BOOOOOOOooooooooooooooooooOOoooOOOM"]);
+                                },12);
 
                                 currentNetwork.machines[1].addProgram(
                                     new Program("chkgrd","Fetches the start of the power distribution grid.",
@@ -2133,7 +2157,7 @@ function bootstrapStory(){
 
 
                                 currentNetwork.machines[1].addProgram(
-                                    new Program("grdupd","Updates the distribution grid row, i.e. grdupd a5 5",
+                                    new Program("grdupd","Updates the distribution grid row, example: 'grdupd a5 5'",
                                     function(params){
                                         return currentMinigame.updateRow(params[0],params[1]);
                                     })
@@ -2144,8 +2168,7 @@ function bootstrapStory(){
                                         setTimeout(()=>{
                                             messageManager.chat = [
                                                 "(Sullivan: This interface is so clunky and feels like it was made in a rush...but i think i saw it somewhere before...)",
-                                                "(Sullivan: If i remember correctly, this command takes in two parameters, first one is the row of the grid, and the second one are the distributions.)",
-                                                "(Sullivan: The distributions should be separated by a comma, like grdupd 1 2,5,4,_,_,5,... and so on"
+                                                "(Sullivan: If i remember correctly, this command takes in two parameters, first one is the grid coordinates, and the second is the value.)",
                                             ]
                                             messageManager.chatIndex = 0;
                                             messageManager.progressChat();
@@ -2210,7 +2233,7 @@ function bootstrapStory(){
                                     },5000);
                                     setTimeout(()=>{
                                         story.completeCondition("exit_room");
-                                    },10000);
+                                    },12000);
                                 });
                             }
                         ],
@@ -2229,6 +2252,8 @@ function bootstrapStory(){
 
                         ],
                         [
+                            "Breakpoint hit, address: TTY",
+                            "(Sullivan: What does this mean?!)",
                             "Sgt Whitcomb: Sully, we made it to the entrance of the bridge.",
                             "Sullivan: I suppose you'll find the captain's logs somewhere inside.",
                             "Sgt Whitcomb: We cannot pry open these doors.",
@@ -2256,7 +2281,7 @@ function bootstrapStory(){
                                     starter,
                                     secu
                                 ];
-                                currentMinigame = new TypingMinigame(1,numbers,1,5,
+                                currentMinigame = new TypingMinigame(1,numbers,10,10,
                                     function(){
                                         story.completeCondition("override_1_of_4");
                                     },
@@ -2312,7 +2337,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(60,230,"ship","L1",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,1,5,
+                                currentMinigame = new TypingMinigame(1,numbers,10,5,
                                     function(){
                                         story.completeCondition("override_2_of_4");
                                     },
@@ -2347,7 +2372,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(60,90,"ship","L2",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,1,5,
+                                currentMinigame = new TypingMinigame(1,numbers,15,10,
                                     function(){
                                         story.completeCondition("override_3_of_4");
                                     },
@@ -2381,7 +2406,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(230,230,"ship","L3",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,1,5,
+                                currentMinigame = new TypingMinigame(1,numbers,20,25,
                                     function(){
                                         story.completeCondition("override_4_of_4");
                                     },
@@ -2419,7 +2444,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(230,90,"ship","L4",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,words,1,5,
+                                currentMinigame = new TypingMinigame(1,words,30,5,
                                     function(){
                                         radar.removeEntity("");
                                         radar.prependEntity(new RadarEntity(293,125,"bulkhead_open","",0,3));
@@ -2455,8 +2480,8 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentScreen.setInputBlocking(true);
                                 messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
                                     radar.animateEntity("Sgt Whitcomb",582,135);
                                     radar.animateEntity("Pvt Johnson",450,150);
                                     radar.animateEntity("Pvt Blake",490,135);
@@ -2655,6 +2680,8 @@ function bootstrapStory(){
                             new Condition("walk_into_room")
                         ],
                         [
+                            "Breakpoint hit, address: CMD",
+                            "(Sullivan: I still don't get this!)",
                             "Sullivan: Sargeant, what's the status? Have you found the captain's quarters?",
                             "Sgt Whitcomb: We are standing right in front of it. Something is very wrong here.",
                             "Sullivan: What do you mean?",
@@ -2668,15 +2695,15 @@ function bootstrapStory(){
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
                                 var starter = new Machine("rgb(27, 24, 26)","sully","192.168.0.12","Sully's Machine");
+                                var ham = new Machine("rgb(0, 62, 72)","Hammet","192.168.0.28","Hammet's Machine");
+                                var bt = new Machine("rgb(100, 62, 72)","Kirk","192.168.0.31","Kirk's Machine",true);
                                 currentNetwork = new Network();
                                 currentNetwork.machines =
                                 [
-                                    starter
+                                    starter,ham,bt
                                 ];
-                              
-                                connectToMachine(currentNetwork.machines[0]);
-
                                 messageManager.setCallback(()=>{
+                                    currentScreen.setInputBlocking(true);
                                     radar.animateEntity("Pvt Blake",30,250);
                                     radar.animateEntity("Pvt Johnson",30,280);
                                     radar.animateEntity("Pvt Wyatt",130,280);
@@ -2723,54 +2750,56 @@ function bootstrapStory(){
                             "Sgt Whitcomb: I don't like this at all. Few of the crewmen are missing flesh...",
                             "Pvt Blake: Sarge, this ones chest is open like a can of tuna. His insides are all over the place!",
                             "Sgt Whitcomb: Get the damn log and lets get out of here. I'm powering on the terminal...",
-                            "...",
-                            "Sgt Whitcomb: Damn, this one is also scrambled. Just get this video running so we can leave this place.",
+                            "Sgt Whitcomb: Just get this video running so we can leave this place.",
                             "Sullivan: I'll work as fast as i can. I don't like this any more than you do."
                         ],
                         [
                             // move around, set up log hacking
                             ()=>{
-                                currentNetwork.machines.push(new Machine("rgb(0, 62, 72)","Hammet","192.168.0.28"));
-                                currentNetwork.machines[2].touch("hammet_069.log",["YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",
-                                "YIM OBNNGM: MOHL HL MOG YBIMBHF LIGBQHFU. MOG OHUO KBFQHFU TCCHYGKL BKG MKBIIGR HF MOG YBIMBHF'L JWBKMGKL, BSTFU EHMO NG.",
-                                "YIM OBNNGM: EG LGG FT GLYBIG. MOHL NHUOM ZG NA SBLM GFMKA. NA NHFR HL EGBKA. NA NGNTKHGL BKG ZSWKKGR",
-                                "YIM OBNNGM: BCMGK MOG BHKSTYQ HFYHRGFM HF RTYQHFU ZBA B CGE YKGENGF XBFHLOGR. MOGF MOG ITEGK LWKUG OBIIGFGR",
-                                "YIM OBNNGM: BM MOBM NTNGFM MOG EOTSG LOHI EGFM LHSGFM. EG OBXG FT YSWG EOBM'L OBIIGFHFU EHMO MOG KGLM TC MOG YKGE.",
-                                "YIM OBNNGM: MOGKG HL FT MGSSHFU HC BFATFG GSLG TF MOHL LOHI HL BSHXG. HC MOGA EGKG LTNGTFG ETWSR'XG CTWFR WL ZA FTE.",
-                                "YIM OBNNGM: H CGBK MOG ETKLM... EG YBF TFSA OT",
-                                "(HF ZBYQUKTWFR: OGMCHGSR, EOBM BKG ATW RTHF?!)",
-                                "YIM OBNNGM: SHGWMGFBFM, LMBFR RTEF!",
-                                "(HF ZBYQUKTWFR: BBBBBKKUOOO!!)",
-                                "YIM OBNNGM: SHGWMGFBFM. OBXG ATW STLM ATWK NHFR! UGM OHN WFRGK YTFMKTS!",]);
-                                currentNetwork.machines[2].addProgram(new Program(
-                                    "freq","Writes out the letter frequencies of  a text. For use in cracking ciphers.",(arg)=>{
-                                        return "standard   log file\n"+
-                                        "E   12.02%	G   12.95%\n"+
-                                        "T   9.10%	M    9.83%\n"+
-                                        "A    8.12%	B    8.58%\n"+
-                                        "G    6.91%	F    7.96%\n"+
-                                        "O    7.68%	O    7.02%\n"+
-                                        "I    7.31%	H    6.86%\n"+	
-                                        "N    6.95%	T    5.3%\n"+
-                                        "S    6.28%	K    4.99%\n"+
-                                        "R    6.02%	N    4.68%\n";
-                                    }
-                                ));
 
-                                //BZYRGCUOHPQSNFTIJKLMWXEVAD
-                                //ABCDEFGHIJKLMNOPQRSTUVWXYZ
-                                currentMinigame = new AnalysisMinigame(["BZYRGCUOHPQSNFTIJKLMWXEVAD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"],4,"YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",()=>{
-                                    story.completeCondition("decrypt_log");
-                                });
-                                currentNetwork.machines[2].addProgram(new Program(
-                                    "subs","Attempts to substitute a letter in file. 'subs ET' to replace E with T, or 'subs' to print current sample state.",(arg)=>{
-                                        if (!arg[0])
-                                            return currentMinigame.sample;
-                                        return currentMinigame.substitute(arg[0][0],arg[0][1]);
-                                    }
-                                ));
+                                
                                 messageManager.setCallback(()=>{
+                                    connectToMachine(currentNetwork.machines[1]);
+                                    currentNetwork.machines[1].touch("hammet_069.log",["YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",
+                                    "YIM OBNNGM: MOHL HL MOG YBIMBHF LIGBQHFU. MOG OHUO KBFQHFU TCCHYGKL BKG MKBIIGR HF MOG YBIMBHF'L JWBKMGKL, BSTFU EHMO NG.",
+                                    "YIM OBNNGM: EG LGG FT GLYBIG. MOHL NHUOM ZG NA SBLM GFMKA. NA NHFR HL EGBKA. NA NGNTKHGL BKG ZSWKKGR",
+                                    "YIM OBNNGM: BCMGK MOG BHKSTYQ HFYHRGFM HF RTYQHFU ZBA B CGE YKGENGF XBFHLOGR. MOGF MOG ITEGK LWKUG OBIIGFGR",
+                                    "YIM OBNNGM: BM MOBM NTNGFM MOG EOTSG LOHI EGFM LHSGFM. EG OBXG FT YSWG EOBM'L OBIIGFHFU EHMO MOG KGLM TC MOG YKGE.",
+                                    "YIM OBNNGM: MOGKG HL FT MGSSHFU HC BFATFG GSLG TF MOHL LOHI HL BSHXG. HC MOGA EGKG LTNGTFG ETWSR'XG CTWFR WL ZA FTE.",
+                                    "YIM OBNNGM: H CGBK MOG ETKLM... EG YBF TFSA OT",
+                                    "(HF ZBYQUKTWFR: OGMCHGSR, EOBM BKG ATW RTHF?!)",
+                                    "YIM OBNNGM: SHGWMGFBFM, LMBFR RTEF!",
+                                    "(HF ZBYQUKTWFR: BBBBBKKUOOO!!)",
+                                    "YIM OBNNGM: SHGWMGFBFM. OBXG ATW STLM ATWK NHFR! UGM OHN WFRGK YTFMKTS!",]);
+                                    currentNetwork.machines[1].addProgram(new Program(
+                                        "freq","Writes out the letter frequencies of  a text. For use in cracking ciphers.",(arg)=>{
+                                            return "standard   log file\n"+
+                                            "E   12.02%	G   12.95%\n"+
+                                            "T   9.10%	M    9.83%\n"+
+                                            "A    8.12%	B    8.58%\n"+
+                                            "G    6.91%	F    7.96%\n"+
+                                            "O    7.68%	O    7.02%\n"+
+                                            "I    7.31%	H    6.86%\n"+	
+                                            "N    6.95%	T    5.3%\n"+
+                                            "S    6.28%	K    4.99%\n"+
+                                            "R    6.02%	N    4.68%\n";
+                                        }
+                                    ));
+
+                                    //BZYRGCUOHPQSNFTIJKLMWXEVAD
+                                    //ABCDEFGHIJKLMNOPQRSTUVWXYZ
+                                    currentMinigame = new AnalysisMinigame(["BZYRGCUOHPQSNFTIJKLMWXEVAD","ABCDEFGHIJKLMNOPQRSTUVWXYZ"],4,"YBIMBHF'L STU: AGBK TC BEBQGFHFU 2531:2114",()=>{
+                                        story.completeCondition("decrypt_log");
+                                    });
+                                    currentNetwork.machines[1].addProgram(new Program(
+                                        "subs","Attempts to substitute a letter in file. 'subs ET' to replace E with T, or 'subs' to print current sample state.",(arg)=>{
+                                            if (!arg[0])
+                                                return currentMinigame.sample;
+                                            return currentMinigame.substitute(arg[0][0],arg[0][1]);
+                                        }
+                                    ));
                                     currentScreen.setInputBlocking(false);
+                                    
                                 })
                             }
                         ],
@@ -2834,7 +2863,7 @@ function bootstrapStory(){
                             "Sgt Whitcomb: Sully, get us the hell out of here. That thing ripped Blakes arms right off!",
                             "Sullivan: Go down the corridor, fast. There is a docking station at the end.",
                             "Sullivan: Argus command, do you read me? Have the shuttle dock at the hangar bay, right now!",
-                            "Argus comms officer: The shuttle will be there in seven.",
+                            "Argus comms officer: The shuttle will be there in two minutes, if you are not there it is ordered to leave and bomb the structure.",
                             "Sullivan: Whitcomb, get your men there now. I'll clear the passage for you.",
                             "Sgt Whitcomb: Understood! Move move move!"
 
@@ -2842,9 +2871,9 @@ function bootstrapStory(){
                         [
                   
                             ()=>{
-                                
+                                connectToMachine(currentNetwork.machines[2]);
                                 currentMinigame = new TypingMinigame(
-                                    1,words,1,100,()=>{
+                                    1,words,15,5,()=>{
                                         //move to door 2
                                         radar.removeEntity("b1");
                                         radar.prependEntity(new RadarEntity(150,390,"bulkhead_open",null,0,3));
@@ -2852,7 +2881,7 @@ function bootstrapStory(){
                                         radar.animateEntity("Pvt Wyatt",270,420);
                                         radar.animateEntity("Sgt Whitcomb",270,400);
                                         currentMinigame = new TypingMinigame(
-                                            1,numbers,1,10,()=>{
+                                            1,numbers,10,10,()=>{
                                                 // move to door 3
                                                 
                                                 radar.removeEntity("b2");
@@ -2861,7 +2890,7 @@ function bootstrapStory(){
                                                 radar.animateEntity("Pvt Wyatt",430,420);
                                                 radar.animateEntity("Sgt Whitcomb",430,400);
                                                 currentMinigame = new TypingMinigame(
-                                                    1,words,1,10,()=>{
+                                                    1,words,30,10,()=>{
                                                         //move to hangar
                                                         radar.removeEntity("b3");
                                                         radar.prependEntity(new RadarEntity(450,390,"bulkhead_open","",0,3));
@@ -2870,7 +2899,7 @@ function bootstrapStory(){
                                                         radar.animateEntity("Sgt Whitcomb",590,400);
                                                         setTimeout(()=>{
                                                             story.completeCondition("reach_shuttle");
-                                                        },3000);
+                                                        },5000);
                                                     },
                                                     ()=>{
 
@@ -2887,7 +2916,7 @@ function bootstrapStory(){
                                     },false
                                 );
                                 messageManager.setCallback(()=>{
-                                    currentTimer = new HUDTimer(360,()=>{
+                                    currentTimer = new HUDTimer(120,()=>{
                                         gameOver([
                                             "Sullivan: Nooooo"
                                         ]);
@@ -2957,7 +2986,8 @@ function bootstrapStory(){
                                     radar.animateEntity("Pvt Wyatt",590,-10,0.01);
                                     radar.animateEntity("Sgt Whitcomb",590,-10,0.01);
                                     currentMinigame = new TypingMinigame(
-                                        5,words,100,10,()=>{
+                                        6,words,250,40,()=>{
+                                            
                                             story.completeCondition("hack_the_game");
                                         },()=>{
                                             gameOver([
@@ -2988,6 +3018,9 @@ function bootstrapStory(){
                         ],
                         [
                             ()=>{
+                                currentTimer.stopTimer();
+                                hud.hideHUD();
+                                currentMinigame.stop();
                                 messageManager.setCallback(()=>{
                                     story.completeCondition("read_text");
                                 })
@@ -3022,8 +3055,8 @@ function bootstrapStory(){
                             }
                         ],
                         [
-                            new RadarEntity(250,200,"junk","Ognjen",0,3),
-                            new RadarEntity(500,200,"junk","Vlado",0,3)
+                            new RadarEntity(250,200,"ship","Ognjen",0,3),
+                            new RadarEntity(500,200,"ship","Vlado",0,3)
                         ]
                     )
                 ]
@@ -3147,7 +3180,7 @@ String.prototype.replaceAt=function(index, rplc) {
 }
 
 function assignNumbers(){
-    for(var i=0;i<100;i++){
+    for(var i=0;i<500;i++){
         var n1 = getRndInteger(1,100);
         var n2 = getRndInteger(1,100);
         numbers.push(n1+"+"+n2);
@@ -3166,8 +3199,9 @@ var story;
 var menu;
 var currentNetwork;
 var currentTimer;
-var audio = new Audio('type.ogg');
-var audio_b = new Audio('bkgrd.ogg');
+var audio = new Audio('type1.ogg');
+audio.volume = 0.5;
+var audio_b = new Audio('bgrd.ogg');
 // Main
 function init(){
     enterMenu();

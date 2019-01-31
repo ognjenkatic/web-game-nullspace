@@ -13,11 +13,17 @@ img{
   border-width: 3px 0px 1px 0px;
 }
 .menu_button{
-  color : green;
   padding: 5px;
-  /*font-family:"MyCyber2";*/
-  opacity: 0.7;
-  font-size:30px;
+  font-family:fantasy;
+  font-size:40px;
+  text-shadow:
+  0px -2px 4px #fff,
+  0px -2px 10px #FF3,
+  0px -10px 20px #F90,
+  0px -20px 40px #C33;
+  opacity: 1;
+  animation: animfire 3s infinite;
+  animation-direction: alternate;
 }
 
 .menu_separator{
@@ -32,8 +38,8 @@ img{
 #game_title{
   color : rgb(0, 15, 0);
   cursor: default;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 40px;
+  font-family: Fantasy;
+  font-size: 50px;
   margin-top:100px;
   text-shadow: 2px 2px 4px #ff8d00d1;
   opacity:1;
@@ -46,7 +52,6 @@ img{
   content: "NULL Space";
   color : rgba(112, 91, 91, 0.596);
   cursor: default;
-  /*font-family: "MyCyber";*/
   font-size: 100px;
   opacity:0.7;
   text-shadow: 2px 2px 4px #ff8d00d1;
@@ -92,9 +97,6 @@ img{
   z-index: 999;
 }
 
-#hack_content,#hack_content_old{
-  /*font-family: "MyCyber";*/
-}
 
 #message_box_tooltip{
   position: absolute;
@@ -102,7 +104,7 @@ img{
   top:130px;
   left:620px;
   animation: mbt_opacity 2s infinite;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-family: fantasy;
 }
 
 
@@ -130,7 +132,7 @@ img{
 }
 
 #message_box code{
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-family: fantasy;
   /*font-family: "MyCyber";*/
 }
 * {
@@ -141,7 +143,7 @@ img{
   color:rgb(0, 41, 0);
   position: absolute;
   font-size: 25px;
-  /*font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
+  font-family: fantasy;
   text-shadow:
   0px -2px 4px #fff,
   0px -2px 10px #FF3,
@@ -150,7 +152,6 @@ img{
   opacity: 1;
   animation: animfire 1s infinite;
   animation-direction: alternate;
-  /*font-family: "MyCyber";*/
 }
 
 @keyframes animfire{
@@ -227,7 +228,7 @@ code {
 pre{
    color: #00ff00;
    margin: 0px;
-   white-space: pre-wrap
+   white-space: pre-wrap;
 }
 
 ul {
@@ -253,28 +254,40 @@ input:focus {
 
 #convos,#objectives{
   color:white;
-  width:715px;
-  height:450px;
+  width:710px;
+  height:445px;
   overflow: scroll;
   padding:5px;
   padding-top: 30px;
   display:none;
+  color:green;
+  overflow-x:hidden;
+  font-family: fantasy;
 }
 #rselect {
-  left:167px;
+  left:186px;
 }
 #oselect{
-  left:95px;
+  left:105px;
 }
 
 
 #oselect,#cselect,#rselect{
   background-color:#00ff00;
-  border-radius: 3px;
+  border-radius: 1px;
   font-size: 15px;
   position: absolute;
   margin:5px;
   z-index: 1006;
+  font-family: fantasy;
+  padding:5px;
+  border:solid 1px red;
+  display: none;
+  opacity: 0.5;
+}
+
+#oselect:hover,#rselect:hover,#cselect:hover{
+  opacity:1;
 }
 #HUD_timer{
   color:white;
@@ -305,6 +318,7 @@ input:focus {
   width:676px;
   top:30px;
   left: 10px;
+  z-index: 1001;
 }
 
 #HUD_speed_bar {
@@ -324,7 +338,8 @@ input:focus {
   text-align: center;
   border:solid 1px;
   border-color:white;
-  opacity:0.5;
+  opacity: 1;
+  border-radius: 5px;
 }
 
 #HUD_misses_bar{
@@ -333,7 +348,7 @@ input:focus {
   width:0px;
   top:40px;
   left: 10px;
-  background-color:red;
+  background: #ff0000a3;
 }
 
 #HUD_misses_bar::before{
@@ -345,7 +360,8 @@ input:focus {
   text-align: center;
   border:solid 1px;
   border-color:white;
-  opacity:0.5;
+  opacity: 1;
+  border-radius: 5px;
 }
 #HUD_progress_bar{
   position: absolute;
@@ -353,7 +369,7 @@ input:focus {
   width:0px;
   top:10px;
   left: 10px;
-  background-color:white;
+  background-color: #10ff008a;
   overflow: visible;
 }
 
@@ -366,7 +382,8 @@ input:focus {
   text-align: center;
   border:solid 1px;
   border-color:white;
-  opacity:0.5;
+  opacity: 1;
+  border-radius: 5px;
 }
 
 #HUD_type_hit{
@@ -386,14 +403,4 @@ input:focus {
   top:10px;
   left: 120px;
   background-color:white;
-}
-
-@font-face {
-  font-family: "MyCyber";
-  src: url(cyber3.ttf) format("truetype");
-}
-
-@font-face {
-  font-family: "MyCyber2";
-  src: url(cyber5.ttf) format("truetype");
 }

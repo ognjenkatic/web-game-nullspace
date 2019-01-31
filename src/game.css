@@ -13,11 +13,17 @@ img{
   border-width: 3px 0px 1px 0px;
 }
 .menu_button{
-  color : green;
   padding: 5px;
   font-family:fantasy;
-  opacity: 0.7;
-  font-size:30px;
+  font-size:40px;
+  text-shadow:
+  0px -2px 4px #fff,
+  0px -2px 10px #FF3,
+  0px -10px 20px #F90,
+  0px -20px 40px #C33;
+  opacity: 1;
+  animation: animfire 3s infinite;
+  animation-direction: alternate;
 }
 
 .menu_separator{
@@ -33,7 +39,7 @@ img{
   color : rgb(0, 15, 0);
   cursor: default;
   font-family: Fantasy;
-  font-size: 40px;
+  font-size: 50px;
   margin-top:100px;
   text-shadow: 2px 2px 4px #ff8d00d1;
   opacity:1;
