@@ -127,6 +127,7 @@ class Machine{
                 retval += "tunnel\t\t: connect to a remote machine. The first argument is it's address.\n";
                 retval += "logread\t\t: read the contents of a log. The first argument is the file name.\n";
                 retval += "rfe\t\t: starts up the RFE framework used for realtime vulnerability exploitation.\n";
+                retval += "netscan\t\t: scans the network for machines."
                 for(var i=0;i<this.programs.length;i++){
                     retval += this.programs[i].name+"\t\t: "+this.programs[i].description+"\n";
                 }
@@ -1848,7 +1849,7 @@ function bootstrapStory(){
                     ),
                     new Scene(
                         [
-                            new Condition("hack_t14")
+                            new Condition("hack_environmentals_terminal")
                         ],
                         [
                             "(Sullivan: Alright, I'm in...It seems the system is having problems recovering. However that error code indicates theres a problem with one of the auxiliary systems.)",
@@ -1857,9 +1858,9 @@ function bootstrapStory(){
                         ],
                         [
                             function(){
-                                currentMinigame = new TypingMinigame(1,words,20,10,
+                                currentMinigame = new TypingMinigame(1,words2,20,10,
                                     function(){
-                                        story.completeCondition("hack_t14");
+                                        story.completeCondition("hack_environmentals_terminal");
                                     },
                                     function(){
                                         console.log("Hack failed");
@@ -1920,13 +1921,13 @@ function bootstrapStory(){
                                 messageManager.setCallback(
                                     function(){
                                         currentScreen.setInputBlocking(true);
-                                        radar.animateEntity("Sgt Whitcomb",800,55);
-                                        radar.animateEntity("Pvt Blake",800,75);
-                                        radar.animateEntity("Pvt Wyatt",800,95);
-                                        radar.animateEntity("Pvt Johnson",800,115);
+                                        radar.animateEntity("Sgt Whitcomb",730,55);
+                                        radar.animateEntity("Pvt Blake",730,75);
+                                        radar.animateEntity("Pvt Wyatt",730,95);
+                                        radar.animateEntity("Pvt Johnson",730,115);
                                         setTimeout(() => {
                                             story.completeCondition("pat_own_back");
-                                        }, 5000);
+                                        }, 7000);
                                         
                                     }
                                 );
@@ -2059,7 +2060,7 @@ function bootstrapStory(){
 
                                 )
 
-                                currentMinigame = new TypingMinigame(4,words,80,15,
+                                currentMinigame = new TypingMinigame(4,words2,80,15,
                                     function(){
                                         story.completeCondition("initialize_generator");
                                         currentScreen.appendCommandResult("Code accepted\nGenerator initialized\nPrivileged access granted.\nNew programs available.");
@@ -2233,7 +2234,7 @@ function bootstrapStory(){
                                     },5000);
                                     setTimeout(()=>{
                                         story.completeCondition("exit_room");
-                                    },12000);
+                                    },14000);
                                 });
                             }
                         ],
@@ -2281,7 +2282,7 @@ function bootstrapStory(){
                                     starter,
                                     secu
                                 ];
-                                currentMinigame = new TypingMinigame(1,numbers,10,10,
+                                currentMinigame = new TypingMinigame(1,numbers,8,10,
                                     function(){
                                         story.completeCondition("override_1_of_4");
                                     },
@@ -2337,7 +2338,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(60,230,"ship","L1",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,10,5,
+                                currentMinigame = new TypingMinigame(1,numbers,8,5,
                                     function(){
                                         story.completeCondition("override_2_of_4");
                                     },
@@ -2372,7 +2373,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(60,90,"ship","L2",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,15,10,
+                                currentMinigame = new TypingMinigame(1,numbers,10,15,
                                     function(){
                                         story.completeCondition("override_3_of_4");
                                     },
@@ -2406,7 +2407,7 @@ function bootstrapStory(){
                                 radar.appendEntity(new RadarEntity(230,230,"ship","L3",0,1,15,15));
                                 radar.bcdraw_clear();
                                 radar.drawEntities();
-                                currentMinigame = new TypingMinigame(1,numbers,20,25,
+                                currentMinigame = new TypingMinigame(2,words2,50,10,
                                     function(){
                                         story.completeCondition("override_4_of_4");
                                     },
@@ -2416,7 +2417,7 @@ function bootstrapStory(){
                                             "(Sullivan: ...)",
                                             "(Sullivan: Damn you basic maaaaatthh!)"
                                         ])
-                                    },true);
+                                    },false);
                                 messageManager.setCallback(()=>{
                                     radar.animateEntity("Sgt Whitcomb",230,113);
                                     currentScreen.setState("hacking");
@@ -2881,7 +2882,7 @@ function bootstrapStory(){
                                         radar.animateEntity("Pvt Wyatt",270,420);
                                         radar.animateEntity("Sgt Whitcomb",270,400);
                                         currentMinigame = new TypingMinigame(
-                                            1,numbers,10,10,()=>{
+                                            1,numbers,5,10,()=>{
                                                 // move to door 3
                                                 
                                                 radar.removeEntity("b2");
@@ -2902,21 +2903,21 @@ function bootstrapStory(){
                                                         },5000);
                                                     },
                                                     ()=>{
-
+                                                        gameOver(["Sgt Sullivan: No,no,noooooo!"]);
                                                     },false
                                                 );
                                                 currentScreen.setState("hacking");
                                             },()=>{
-
+                                                gameOver(["Sgt Sullivan: No,no,noooooo!"]);
                                             },true
                                         );
                                         currentScreen.setState("hacking");
                                     },()=>{
-
+                                        gameOver(["Sgt Sullivan: No,no,noooooo!"]);
                                     },false
                                 );
                                 messageManager.setCallback(()=>{
-                                    currentTimer = new HUDTimer(120,()=>{
+                                    currentTimer = new HUDTimer(180,()=>{
                                         gameOver([
                                             "Sullivan: Nooooo"
                                         ]);
@@ -2986,7 +2987,7 @@ function bootstrapStory(){
                                     radar.animateEntity("Pvt Wyatt",590,-10,0.01);
                                     radar.animateEntity("Sgt Whitcomb",590,-10,0.01);
                                     currentMinigame = new TypingMinigame(
-                                        6,words,250,40,()=>{
+                                        6,words2,250,10,()=>{
                                             
                                             story.completeCondition("hack_the_game");
                                         },()=>{
@@ -3193,7 +3194,25 @@ var messageManager;
 var currentMachine;
 var currentScreen;
 var currentMinigame;
-var words = ["unknown","continue","buffer","overflow","cross","site","reflection","middle","man","certificate","foreach","interface","dissasemble","working","set","namespace","hack","mysql","injection"];
+var words = ["abstract","else","instanceof","super"
+,"boolean","enum","int","switch"
+,"break","export","interface","synchronized"
+,"byte","extends","let","this"
+,"case","false","long","throw"
+,"catch","final","native","throws"
+,"char","finally","new","transient"
+,"class","float","null","true"
+,"const","for","package","try"
+,"continue","function","private","typeof"
+,"debugger","goto","protected","var"
+,"default","if","public","void"
+,"delete","implements","return","volatile"
+,"do","import","short","while"
+,"double","in","static","with"];
+var words2 = ["attribution","backdoor","black hat","botnet","brute force","bug","cracking","crypto","dark web","ddos","deep web","encryption",
+"exploit","forensics","hacker","hacktivist","hashing","infosec","jailbreak","keys","malware","metadata","nonce","opsec","password manager","pentesting","pgp","phishing","plaintext",
+"rat","ransomware","rainbow table","root","rootkit","salting","script kiddie","signature","side channel attack","sniffing","social engineering","spearphishing","spoofing","spyware",
+"threat model","token","vpn","virus","vulnerability","white hat","worm","zero-day"];
 var numbers = [];
 var story;
 var menu;
@@ -3201,6 +3220,7 @@ var currentNetwork;
 var currentTimer;
 var audio = new Audio('type1.ogg');
 audio.volume = 0.5;
+
 var audio_b = new Audio('bgrd.ogg');
 // Main
 function init(){
