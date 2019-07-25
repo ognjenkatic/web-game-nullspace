@@ -1,6 +1,8 @@
 # NULL Space
 This is my entry for the Gynvael's Winter GameDev Challenge 2018/19 - (https://gynvael.coldwind.pl/?lang=en&id=697). Following the game challenge, the development of the game had a few restrictions, some of which were:
 
+(UPDATE: The game had a honorable mention (https://gynvael.coldwind.pl/?lang=en&id=703))
+
 - The game must be an unrealistic hacking simulator
 - The game setting must be: the player is a space marine's tech/hacker that aids a squad of space marines while they explore an abandoned space station.
 - The game must be made in client-side web technology that runs by default on the newest stable Chrome on Windows 10 (1803/1809)
