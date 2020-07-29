@@ -1,6 +1,8 @@
 # NULL Space
 This is my entry for the Gynvael's Winter GameDev Challenge 2018/19 - (https://gynvael.coldwind.pl/?lang=en&id=697). Following the game challenge, the development of the game had a few restrictions, some of which were:
 
+![alt text](https://github.com/ognjenkatic/web-game-nullspace/blob/master/screen.png?raw=true)
+
 (UPDATE: The game had a honorable mention (https://gynvael.coldwind.pl/?lang=en&id=703))
 
 - The game must be an unrealistic hacking simulator
